@@ -82,17 +82,19 @@ _Status 2026-10-23:_ DoD terpenuhi. Smoke test testnet: run 1 (jalur normal, flo
 
 ## Phase 4 — Frontend fondasi (Hari 5–6)
 
-- [ ] 🔴 `lib/chains.ts` (monadTestnet dari `viem/chains`, plus anvil), `lib/wagmi.ts` (RainbowKit, fallback transport HTTP→cadangan)
-- [ ] 🔴 `lib/contracts.ts` (address + ABI typed via `as const`)
-- [ ] 🔴 `lib/session.ts`: generate/simpan burner, saldo, withdraw
-- [ ] 🔴 `lib/txQueue.ts`: antrian serial, nonce lokal, gas limit eksplisit, ukur latency, retry
-- [ ] 🔴 `lib/runMachine.ts`: map `Run` on-chain → UI state, tunggu `> targetBlock` (`watchBlockNumber`), lalu `previewEncounter` / `previewResolve`. Fallback relay `reveal`/`settle` kalau player diam ≥ 150 blok
-- [ ] 🔴 `lib/gas.ts`: gas limit per jalur dari gas report (`base + rounds × GAS_PER_ROUND`), retry worst case sekali kalau out-of-gas
-- [ ] 🔴 `store/game.ts` (zustand): run, log, tx history, pool
-- [ ] 🔴 Recovery saat refresh (ARCHITECTURE §6.3)
-- [ ] 🔴 Halaman `/play` versi kasar (tanpa art): bisa main dari enter sampai cash out/mati
+- [x] 🔴 `lib/chains.ts` (monadTestnet dari `viem/chains`, plus anvil), `lib/wagmi.ts` (RainbowKit, fallback transport HTTP→cadangan) _(fallback: env → testnet-rpc.monad.xyz → ankr → drpc; tanpa `NEXT_PUBLIC_WC_PROJECT_ID` hanya wallet injected)_
+- [x] 🔴 `lib/contracts.ts` (address + ABI typed via `as const`)
+- [x] 🔴 `lib/session.ts`: generate/simpan burner, saldo, withdraw
+- [x] 🔴 `lib/txQueue.ts`: antrian serial, nonce lokal, gas limit eksplisit, ukur latency, retry _(tx ditandatangani sekali, retry jaringan mengirim raw tx yang sama)_
+- [x] 🔴 `lib/runMachine.ts`: map `Run` on-chain → UI state, tunggu `> targetBlock` (`watchBlockNumber`), lalu `previewEncounter` / `previewResolve`. Fallback relay `reveal`/`settle` kalau player diam ≥ 150 blok _(plus auto-`settle` saat preview = mati, supaya run tertutup)_
+- [x] 🔴 `lib/gas.ts`: gas limit per jalur dari gas report (`base + rounds × GAS_PER_ROUND`), retry worst case sekali kalau out-of-gas _(cashOut dan kematian pakai `eth_estimateGas` karena biaya board)_
+- [x] 🔴 `store/game.ts` (zustand): run, log, tx history, pool
+- [x] 🔴 Recovery saat refresh (ARCHITECTURE §6.3) _(state selalu dibaca ulang dari chain saat load; relay langsung terkirim kalau sudah ≥ 150 blok)_
+- [x] 🔴 Halaman `/play` versi kasar (tanpa art): bisa main dari enter sampai cash out/mati
 
 **DoD:** satu run penuh dimainkan via UI di testnet dengan **hanya 1 popup** dan 2 tx per lantai di jalur normal. Latency per tx tampil di console/ticker.
+
+_Status 2026-10-23:_ `pnpm -F web test` (19), typecheck, lint, dan `next build` hijau. E2E headless (`pnpm -F web e2e`, memakai `lib/*` yang sama dengan `/play`): anvil 4 lantai dan **testnet 3 lantai → cash out 0.9 MON, owner 1 tx, session 2 tx per lantai, latency p50 1124ms / p95 1357ms**. Playtest manual `/play` di browser (MetaMask, testnet): run penuh sampai mati / cash out dengan 1 popup (`enterDungeon`), latency per tx tampil di console (`[depths tx]`) dan ticker, relay `reveal` otomatis terverifikasi on-chain (154 blok setelah target). **DoD terpenuhi.**
 
 ---
 

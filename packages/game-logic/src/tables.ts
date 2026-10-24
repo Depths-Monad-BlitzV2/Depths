@@ -9,6 +9,16 @@ export const MAX_ROUNDS = 64;
 export const POTION_HEAL = 50;
 export const ENTRY_FEE_MMON = 1000;
 
+// Merchant, GAME_DESIGN §7 (mirror DepthsLogic.SWORD_PRICE dst.)
+export const SWORD_PRICE = 400n * MMON;
+export const SHIELD_PRICE = 400n * MMON;
+export const POTION_PRICE = 200n * MMON;
+export const MAX_SWORDS = 5;
+export const MAX_SHIELDS = 5;
+export const MAX_POTIONS = 3;
+export const SWORD_ATK = 10;
+export const SHIELD_HP = 20;
+
 /** Index = floor - 1. Loot dalam mMON. GAME_DESIGN §4.1 */
 const HP = [30, 40, 52, 65, 80, 100, 120, 145, 170, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809] as const;
 const ATK = [5, 7, 9, 12, 15, 19, 24, 29, 34, 40, 45, 50, 56, 63, 70, 79, 88, 99, 111, 124] as const;

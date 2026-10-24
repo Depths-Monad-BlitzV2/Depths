@@ -2,5 +2,8 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  bufferutil: false # add-on native opsional (ws), ada fallback JS
   esbuild: true
+  keccak: false # add-on native opsional (WalletConnect), ada fallback JS
   unrs-resolver: true
+  utf-8-validate: false # add-on native opsional (ws), ada fallback JS

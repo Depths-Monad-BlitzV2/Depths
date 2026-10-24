@@ -30,6 +30,19 @@ PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 S
 cd .. && pnpm abi:sync && pnpm -F web dev # http://localhost:3000
 ```
 
+## Main di testnet
+```bash
+cp apps/web/.env.example apps/web/.env.local   # address testnet sudah terisi
+pnpm -F web dev                                # http://localhost:3000/play
+```
+Butuh wallet extension (MetaMask/Rabby) di Monad Testnet. Isi `NEXT_PUBLIC_WC_PROJECT_ID` untuk WalletConnect.
+
+```bash
+# e2e headless: lib/* yang sama dengan /play, owner = main wallet, burner memainkan FLOORS lantai lalu cash out
+OWNER_PRIVATE_KEY=0x... FLOORS=3 pnpm -F web e2e
+pnpm -F web test                               # unit test lib (gas, fase run, relay, session, narator)
+```
+
 ## Deployment
 | Network | Contract | Deploy | Explorer |
 |---|---|---|---|

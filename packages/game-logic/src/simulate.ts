@@ -8,7 +8,18 @@ import { fileURLToPath } from 'node:url';
 import { estimateWinChance } from './combat';
 import { mulberry32, randomDraw, type Draw } from './rng';
 import { resolveMonster, resolveTrap, resolveTreasure, rollEncounter } from './resolve';
-import { BASE_ATK, BASE_HP, ENTRY_FEE_MMON, MAX_FLOOR, MMON, POTION_HEAL, monster } from './tables';
+import {
+  BASE_ATK,
+  BASE_HP,
+  ENTRY_FEE_MMON,
+  MAX_FLOOR,
+  MMON,
+  POTION_HEAL,
+  POTION_PRICE,
+  SHIELD_PRICE,
+  SWORD_PRICE,
+  monster,
+} from './tables';
 import { Encounter } from './types';
 
 export interface Strategy {
@@ -36,9 +47,9 @@ interface RunResult {
 }
 
 // GAME_DESIGN §7
-const SWORD = 400n * MMON;
-const SHIELD = 400n * MMON;
-const POTION = 200n * MMON;
+const SWORD = SWORD_PRICE;
+const SHIELD = SHIELD_PRICE;
+const POTION = POTION_PRICE;
 
 export function simulateRun(s: Strategy, rng: () => number, winChanceSamples = 200): RunResult {
   const draw: Draw = randomDraw(rng);
