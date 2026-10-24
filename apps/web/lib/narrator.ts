@@ -22,7 +22,14 @@ export class Narrator {
   private prev: { s: Snapshot; p: Phase } | null = null;
   private seen = new Set<string>();
 
-  constructor(private readonly sink: NarratorSink) {}
+  /**
+   * @param narrateResolution false di UI: baris combat/hasil ditulis oleh timeline scene (UI_UX §2.1),
+   *        supaya log tidak mendahului animasi.
+   */
+  constructor(
+    private readonly sink: NarratorSink,
+    private readonly opts: { narrateResolution?: boolean } = {},
+  ) {}
 
   push(s: Snapshot, p: Phase): void {
     const r = s.run;
@@ -30,7 +37,8 @@ export class Narrator {
     if (p.kind === 'encounter' && this.once(`${key}:enc`)) {
       this.sink.log(`Lantai ${r.floor}. ${encounterLine(p.encounter, p.monsterId)}`);
     }
-    if ((p.kind === 'resolved' || p.kind === 'dying') && this.once(`${key}:${r.targetBlock}:res`)) {
+    const narrate = this.opts.narrateResolution ?? true;
+    if (narrate && (p.kind === 'resolved' || p.kind === 'dying') && this.once(`${key}:${r.targetBlock}:res`)) {
       if (p.replay) for (const line of combatLines(p.replay.events, monsterName(r.monsterId))) this.sink.log(line);
       const award = p.kind === 'resolved' ? p.award : 0n;
       this.sink.log(outcomeLine(p.resolution, award), p.resolution.survived ? 'good' : 'bad');

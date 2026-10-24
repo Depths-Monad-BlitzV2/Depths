@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useAccount, useChainId } from 'wagmi';
-import type { Chain, PublicClient, Transport } from 'viem';
+import type { Address, Chain, PublicClient, Transport } from 'viem';
 import type { PrivateKeyAccount } from 'viem/accounts';
 import { activeChain } from '@/lib/chains';
 import { createDepthsClient } from '@/lib/client';
@@ -14,6 +14,7 @@ import { TxQueue } from '@/lib/txQueue';
 import { gameStore } from '@/store/game';
 
 export interface DepthsGame {
+  owner: Address | null;
   machine: RunMachine | null;
   session: PrivateKeyAccount | null;
   /** Burner baru dibuat di sesi ini → tampilkan penjelasan onboarding (UI_UX §5). */
@@ -61,10 +62,14 @@ export function useDepthsGame(): DepthsGame {
         }
       },
     });
-    const narrator = new Narrator({
-      log: (text, tone) => gameStore.getState().pushLog(text, tone),
-      ended: (end) => gameStore.getState().setEnded(end),
-    });
+    // baris combat/hasil ditulis PlayScreen mengikuti timeline scene, bukan saat snapshot datang
+    const narrator = new Narrator(
+      {
+        log: (text, tone) => gameStore.getState().pushLog(text, tone),
+        ended: (end) => gameStore.getState().setEnded(end),
+      },
+      { narrateResolution: false },
+    );
     const machine = new RunMachine({
       client,
       address,
@@ -88,6 +93,7 @@ export function useDepthsGame(): DepthsGame {
   };
 
   return {
+    owner: owner ?? null,
     machine: state?.machine ?? null,
     session: state?.session ?? null,
     newSession: state?.created ?? false,

@@ -1,18 +1,245 @@
 @import "tailwindcss";
 
-/* Palet gelap hitam-ungu-teal (UI_UX §2). Token lengkap dibuat di Phase 5. */
+/* Palet gelap hitam-ungu-teal, aksen merah (bahaya) dan emas (loot). UI_UX §2. */
 :root {
   --background: #0b0a12;
   --foreground: #e6e3f0;
+  --panel: #14121f;
+  --line: #2a2640;
+  --teal: #2dd4bf;
+  --danger: #ef4444;
+  --gold: #fbbf24;
+  --heal: #4ade80;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-teal: var(--teal);
+  --color-danger: var(--danger);
+  --color-gold: var(--gold);
+  --color-heal: var(--heal);
+  --font-pixel: var(--font-silkscreen), ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: system-ui, sans-serif;
+}
+
+.pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.04em;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* ---------------------------------------------------------------- sprite (UI_UX §2.1) */
+
+@keyframes sprite-play {
+  from {
+    background-position-x: var(--sx0);
+  }
+  to {
+    background-position-x: var(--sx1);
+  }
+}
+
+/* ---------------------------------------------------------------- efek scene */
+
+@keyframes float-up {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -28px);
+    opacity: 0;
+  }
+}
+
+@keyframes float-to-bag {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-120px, -110px) scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, 0);
+  }
+}
+
+@keyframes hit-flash {
+  0% {
+    filter: brightness(3) saturate(0);
+  }
+  100% {
+    filter: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes walk-in-right {
+  from {
+    transform: translateX(80px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes walk-in-left {
+  from {
+    transform: translateX(-90px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes walk-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(260px);
+  }
+}
+
+@keyframes stairs-dark {
+  0% {
+    opacity: 0;
+  }
+  35%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fog-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 320px 0;
+  }
+}
+
+@keyframes torch-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.06);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes chest-rattle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-6deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes count-up-glow {
+  from {
+    text-shadow: 0 0 12px var(--gold);
+  }
+  to {
+    text-shadow: none;
+  }
+}
+
+/* Hormati prefers-reduced-motion: matikan shake, flash, hitstop (UI_UX §7). */
+@media (prefers-reduced-motion: reduce) {
+  .motion-shake,
+  .motion-flash {
+    animation: none !important;
+  }
+}
+
+/* Kembaran keyframes: nama animasi bergantian per hit supaya efek diputar ulang tanpa remount scene. */
+@keyframes shake-b {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(2px, -1px);
+  }
+  50% {
+    transform: translate(-2px, 1px);
+  }
+  75% {
+    transform: translate(1px, 0);
+  }
+}
+
+@keyframes hit-flash-b {
+  0% {
+    filter: brightness(3) saturate(0);
+  }
+  100% {
+    filter: none;
+  }
 }

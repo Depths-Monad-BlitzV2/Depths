@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { Silkscreen } from "next/font/google";
 import "./globals.css";
+
+// Font pixel untuk judul dan angka besar (UI_UX §2), SIL OFL (lihat public/CREDITS.md)
+const silkscreen = Silkscreen({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-silkscreen" });
 
 export const metadata: Metadata = {
   title: "Depths",
@@ -12,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="id" className={silkscreen.variable}>
       <body className="antialiased">{children}</body>
     </html>
   );
