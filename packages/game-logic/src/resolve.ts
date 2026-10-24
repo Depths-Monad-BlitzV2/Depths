@@ -67,7 +67,7 @@ export function resolveTreasure(draw: Draw, floor: number, hp: number, atk: numb
     if (!c.win) return died(Outcome.MIMIC_KILLED);
     return { outcome: Outcome.MIMIC_WIN, survived: true, hpAfter: c.hpAfter, lootTable: monster(floor).loot * 2n, bagLoss: 0n };
   }
-  const amount = BigInt(10 + draw(1, 41)) * MMON;
+  const amount = BigInt((10 + draw(1, 41)) * 20) * MMON; // 200–1000 mMON
   return { outcome: Outcome.TREASURE, survived: true, hpAfter: hp, lootTable: amount, bagLoss: 0n };
 }
 
@@ -77,7 +77,7 @@ export function resolveTrap(draw: Draw, floor: number, hp: number, bag: bigint, 
   const base = 10 + 3 * floor;
   if (disarm) {
     if (r < 50) {
-      return { outcome: Outcome.DISARM_OK, survived: true, hpAfter: hp, lootTable: BigInt(5 * floor) * MMON, bagLoss: 0n };
+      return { outcome: Outcome.DISARM_OK, survived: true, hpAfter: hp, lootTable: BigInt(100 * floor) * MMON, bagLoss: 0n };
     }
     const loss = 2 * base;
     if (loss >= hp) return died(Outcome.DISARM_FAIL);

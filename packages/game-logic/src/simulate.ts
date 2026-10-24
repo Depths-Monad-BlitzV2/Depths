@@ -23,9 +23,9 @@ export interface Strategy {
 }
 
 export const STRATEGIES: Record<string, Strategy> = {
-  cautious: { fleeBelow: 0.7, cashAt: 60, maxFloor: 5, hpCash: 40 },
-  balanced: { fleeBelow: 0.6, cashAt: 120, maxFloor: 8, hpCash: 30 },
-  greedy: { fleeBelow: 0.5, cashAt: 300, maxFloor: 12, hpCash: 15 },
+  cautious: { fleeBelow: 0.7, cashAt: 1200, maxFloor: 5, hpCash: 40 },
+  balanced: { fleeBelow: 0.6, cashAt: 2400, maxFloor: 8, hpCash: 30 },
+  greedy: { fleeBelow: 0.5, cashAt: 6000, maxFloor: 12, hpCash: 15 },
   yolo: { fleeBelow: 0, cashAt: Number.POSITIVE_INFINITY, maxFloor: MAX_FLOOR, hpCash: 0 },
 };
 
@@ -35,9 +35,10 @@ interface RunResult {
   payout: number;
 }
 
-const SWORD = 20n * MMON;
-const SHIELD = 20n * MMON;
-const POTION = 10n * MMON;
+// GAME_DESIGN §7
+const SWORD = 400n * MMON;
+const SHIELD = 400n * MMON;
+const POTION = 200n * MMON;
 
 export function simulateRun(s: Strategy, rng: () => number, winChanceSamples = 200): RunResult {
   const draw: Draw = randomDraw(rng);
@@ -105,7 +106,7 @@ export interface StrategyReport {
   rtp: number;
   zeroPayout: number;
   avgFloor: number;
-  /** Porsi run dengan payout ≥ 0.1 MON. */
+  /** Porsi run dengan payout ≥ 2× entry fee. */
   bigPayout: number;
 }
 
@@ -120,7 +121,7 @@ export function simulate(s: Strategy, runs: number, seed: number): StrategyRepor
     paid += r.payout;
     floors += r.floor;
     if (r.payout === 0) zero++;
-    if (r.payout >= 100) big++;
+    if (r.payout >= 2 * ENTRY_FEE_MMON) big++;
   }
   return { rtp: paid / runs / ENTRY_FEE_MMON, zeroPayout: zero / runs, avgFloor: floors / runs, bigPayout: big / runs };
 }
@@ -136,7 +137,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const seed = arg('seed', 1);
   const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
   console.log(`runs=${runs} seed=${seed}\n`);
-  console.log('| Strategi | RTP | Payout nol | Rata-rata floor | Payout ≥ 0.1 MON |');
+  console.log('| Strategi | RTP | Payout nol | Rata-rata floor | Payout ≥ 2× entry |');
   console.log('|---|---|---|---|---|');
   for (const [name, s] of Object.entries(STRATEGIES)) {
     const r = simulate(s, runs, seed);

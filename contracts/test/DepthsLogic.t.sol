@@ -19,7 +19,9 @@ contract DepthsLogicTest is Test {
     // GAME_DESIGN §4.1
     uint16[20] HP = [30, 40, 52, 65, 80, 100, 120, 145, 170, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809];
     uint16[20] ATK = [5, 7, 9, 12, 15, 19, 24, 29, 34, 40, 45, 50, 56, 63, 70, 79, 88, 99, 111, 124];
-    uint16[20] LOOT = [10, 15, 20, 30, 50, 70, 90, 120, 160, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809];
+    // loot dalam mMON (entry fee 1000 mMON)
+    uint32[20] LOOT =
+        [200, 300, 400, 600, 1000, 1400, 1800, 2400, 3200, 4000, 4600, 5300, 6080, 7000, 8040, 9260, 10640, 12240, 14080, 16180];
 
     // ---------------------------------------------------------------- tabel
 
@@ -194,8 +196,9 @@ contract DepthsLogicTest is Test {
         } else {
             assertEq(uint8(res.outcome), uint8(Outcome.TREASURE));
             assertEq(res.hpAfter, hp);
-            assertGe(res.lootTable, 10 * MMON);
-            assertLe(res.lootTable, 50 * MMON);
+            assertGe(res.lootTable, 200 * MMON);
+            assertLe(res.lootTable, 1000 * MMON);
+            assertEq(res.lootTable % (20 * MMON), 0);
         }
     }
 
@@ -247,7 +250,7 @@ contract DepthsLogicTest is Test {
         hp = uint16(bound(hp, 1, 300));
         Resolution memory res = DepthsLogic.resolveTrap(seed, floor, hp, 1 ether, true);
         if (res.outcome == Outcome.DISARM_OK) {
-            assertEq(res.lootTable, 5 * uint256(floor) * MMON);
+            assertEq(res.lootTable, 100 * uint256(floor) * MMON);
             assertEq(res.hpAfter, hp);
         } else {
             assertEq(uint8(res.outcome), uint8(Outcome.DISARM_FAIL));

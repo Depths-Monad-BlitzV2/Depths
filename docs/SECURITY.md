@@ -25,7 +25,9 @@ Contract ini memegang uang player. Setiap PR yang menyentuh `contracts/src` haru
 ## 3. Uang
 
 - **Checks-Effects-Interactions** di `cashOut`, `enterDungeon` (forward top-up), dan `withdrawTreasury`. Hapus/ubah state dulu, baru transfer.
-- `nonReentrant` di semua fungsi yang mengirim MON.
+- `nonReentrant` di semua fungsi yang mengirim MON: `enterDungeon`, `cashOut`, `settle` (auto cash out floor 20), `withdrawTreasury`. Guard memakai `ReentrancyGuardTransient` (TSTORE, terverifikasi di Monad testnet). `act`, `descend`, `reveal`, `reapExpired` tidak pernah mengirim MON. `_settle` sendiri tidak pernah transfer; auto cash out floor 20 dijalankan pemanggil sebagai langkah terakhir.
+- Saat transfer terjadi, run sudah `NONE` dan bag sudah 0, jadi callback penerima yang memanggil fungsi run lain akan revert `NotRunController`/`WrongState` (diuji `test_enter_reentrantOperatorBlocked`).
+- Slither (Phase 2, `uvx --from slither-analyzer slither . --filter-paths "lib|test|script|spike" --exclude-informational --exclude-optimization`): **0 temuan**.
 - Transfer pakai `call{value:}` dan revert `TransferFailed` kalau gagal. Owner yang berupa contract tanpa `receive` tidak bisa cash out; dokumentasikan ini di FAQ (EOA saja).
 - **Tidak ada** fungsi admin yang bisa menarik `pool` atau `reserved`. `pause` hanya memblokir entry baru.
 - Award loot selalu `min(table, pool * MAX_AWARD_BPS / 1e4)` → `pool` tidak pernah negatif atau habis.
@@ -41,7 +43,7 @@ Contract ini memegang uang player. Setiap PR yang menyentuh `contracts/src` haru
 | admin | `owner()` lewat `Ownable2Step` |
 
 - Payout `cashOut` **selalu** ke `owner`, tidak pernah ke `msg.sender`.
-- Satu operator hanya untuk satu owner aktif (`OperatorInUse`).
+- Satu operator hanya untuk satu owner aktif (`OperatorInUse`). Tautan `_operatorOf` tidak dihapus saat run selesai (alasan gas), tapi `operatorOf()`/`ownerOf()` hanya menganggapnya sah kalau run owner aktif **dan** `run.operator == operator`. Diuji `test_staleOperator_*`.
 - Operator tidak bisa memulai run baru atas nama owner (`enterDungeon` memakai `msg.sender` sebagai owner).
 
 ## 5. Session key (frontend)

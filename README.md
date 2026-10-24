@@ -2,7 +2,7 @@
 
 > Bayar masuk. Makin dalam, makin kaya. Tapi kalau mati, hilang semua. Berani sampai lantai berapa?
 
-Player bayar 0.05 MON, turun lantai demi lantai melawan encounter yang di-generate on-chain, lalu di setiap lantai memilih **CASH OUT** atau **GO DEEPER**. Yang mati menyumbang bag-nya ke prize pool untuk player berikutnya.
+Player bayar 1 MON, turun lantai demi lantai melawan encounter yang di-generate on-chain, lalu di setiap lantai memilih **CASH OUT** atau **GO DEEPER**. Yang mati menyumbang bag-nya ke prize pool untuk player berikutnya.
 
 ## Kenapa Monad
 Satu lantai = 2 transaksi (act → descend/cashOut). Reveal dan settle berjalan di dalam tx keputusan berikutnya, dan hasil acaknya tetap dari future blockhash. 10 lantai ≈ 22 tx. Dengan latency sub-detik dan session key, semuanya terasa real-time, dan hanya ada 1 popup wallet per run.

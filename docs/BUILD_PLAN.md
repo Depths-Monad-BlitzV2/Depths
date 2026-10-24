@@ -44,29 +44,31 @@ Tujuan: menghilangkan ketidakpastian soal chain **sebelum** logic dibangun.
 
 ## Phase 2 — Contract Depths (Hari 3–4)
 
-- [ ] 🔴 Storage, konstanta, constructor (`Ownable2Step`, seed pool opsional lewat `msg.value`)
-- [ ] 🔴 `enterDungeon` (split fee, top-up operator, init run)
-- [ ] 🔴 `_reveal` / `_settle` internal + `reveal`, `settle` fallback permissionless
-- [ ] 🔴 `act` di AWAIT_REVEAL (`_reveal` dulu) dan AWAIT_ACTION (validasi aksi per encounter, BUY/LEAVE instan)
-- [ ] 🔴 `descend` / `cashOut` di AWAIT_SETTLE (`_settle` dulu, mati = tidak revert) dan FLOOR_CLEARED
-- [ ] 🔴 Resolusi `_settle` (potion, combat/flee/treasure/mimic/trap/disarm, award dengan cap, auto cash out di floor 20)
-- [ ] 🔴 View `previewEncounter` / `previewResolve`
-- [ ] 🔴 Test parity jalur normal vs fallback (CONTRACT_SPEC §9)
-- [ ] 🔴 `cashOut`, `_die`, `reapExpired`
-- [ ] 🔴 Admin: `seedPool`, `setEntryFee`, `withdrawTreasury`, `pause`
-- [ ] 🟡 Stats dan board top-10 (insertion sort)
-- [ ] 🔴 Unit test per transisi dan per error (CONTRACT_SPEC §9)
-- [ ] 🔴 Invariant test solvency dengan handler
-- [ ] 🔴 `forge test --gas-report` → isi CONTRACT_SPEC §8
-- [ ] 🟡 Slither
+- [x] 🔴 Storage, konstanta, constructor (`Ownable2Step`, seed pool opsional lewat `msg.value`)
+- [x] 🔴 `enterDungeon` (split fee, top-up operator, init run)
+- [x] 🔴 `_reveal` / `_settle` internal + `reveal`, `settle` fallback permissionless
+- [x] 🔴 `act` di AWAIT_REVEAL (`_reveal` dulu) dan AWAIT_ACTION (validasi aksi per encounter, BUY/LEAVE instan)
+- [x] 🔴 `descend` / `cashOut` di AWAIT_SETTLE (`_settle` dulu, mati = tidak revert) dan FLOOR_CLEARED
+- [x] 🔴 Resolusi `_settle` (potion, combat/flee/treasure/mimic/trap/disarm, award dengan cap, auto cash out di floor 20)
+- [x] 🔴 View `previewEncounter` / `previewResolve`
+- [x] 🔴 Test parity jalur normal vs fallback (CONTRACT_SPEC §9) _(`test_parity_*`: event, saldo, state run, stats, board identik)_
+- [x] 🔴 `cashOut`, `_die`, `reapExpired`
+- [x] 🔴 Admin: `seedPool`, `setEntryFee`, `withdrawTreasury`, `pause`
+- [x] 🟡 Stats dan board top-10 (insertion sort)
+- [x] 🔴 Unit test per transisi dan per error (CONTRACT_SPEC §9) _(`test/Depths.t.sol`, 96 test termasuk 2 fuzz)_
+- [x] 🔴 Invariant test solvency dengan handler _(5 invariant, 256 × 100; `test_handlerReachesDeepFloors` menjaga handler tidak no-op)_
+- [x] 🔴 `forge test --gas-report` → isi CONTRACT_SPEC §8 _(per jalur via `test/DepthsGas.t.sol --isolate --network monad`)_
+- [x] 🟡 Slither _(0 temuan setelah auto cash out floor 20 dipindah keluar `_settle`)_
 
 **DoD:** semua test hijau, coverage `src/` ≥ 90%, invariant 256×100 lolos, gas sesuai target.
+
+_Status 2026-10-23:_ 130 test forge + 550 parity TS hijau. Coverage `Depths.sol` 99.7% line / 100% branch, `DepthsLogic.sol` 100%, total `src/` 96.1% (termasuk spike `RngProbe`). Gas jalur normal di bawah target (jadwal Monad). Tiga deviasi tercatat di CONTRACT_SPEC §8: `enterDungeon` pertama kali per player 203k (akun burner baru + slot baru), `descend` di FLOOR_CLEARED 45k (target 35k, jalur fallback saja), dan `cashOut` yang masuk board (175k–320k, frontend memakai `eth_estimateGas`). Angka final dikalibrasi dengan `cast estimate` di Phase 3.
 
 ---
 
 ## Phase 3 — Deploy testnet + keeper (Hari 5 pagi)
 
-- [ ] 🔴 `script/Deploy.s.sol`: deploy, seed pool (mis. 5–10 MON testnet), log address dan block
+- [ ] 🔴 `script/Deploy.s.sol`: deploy, seed pool (target ≥ 80 MON testnet, lihat Phase 7), log address dan block
 - [ ] 🔴 Deploy ke Monad testnet, verifikasi source di explorer (Sourcify / explorer verifier, lihat docs.monad.xyz)
 - [ ] 🔴 Script `pnpm abi:sync`: salin `contracts/out/Depths.sol/Depths.json` (ABI saja) ke `apps/web/abi/` dan `apps/keeper/abi/`
 - [ ] 🔴 Smoke test manual dengan `cast`: enter → act → descend → act → cashOut, plus jalur fallback reveal/settle
@@ -129,7 +131,7 @@ Tujuan: menghilangkan ketidakpastian soal chain **sebelum** logic dibangun.
 ## Phase 7 — Demo & submission (Hari 10)
 
 - [ ] 🔴 Deploy web ke Vercel (env testnet)
-- [ ] 🔴 Seed pool cukup besar supaya loot terasa (cap 5% → pool ≥ 5 MON agar loot floor 10 tidak terpotong)
+- [ ] 🔴 Seed pool cukup besar supaya loot terasa (cap 5% → pool ≥ 80 MON agar loot floor 10 = 4 MON tidak terpotong; pool ≥ 20 MON cukup untuk floor 1–5). Kumpulkan MON faucet dari beberapa wallet kalau perlu
 - [ ] 🔴 Siapkan 2 wallet demo bersaldo + burner yang sudah ter-top-up
 - [ ] 🔴 Latihan [DEMO_SCRIPT.md](DEMO_SCRIPT.md) minimal 3×, plus rekam video backup
 - [ ] 🔴 README: deskripsi, arsitektur, address contract, link explorer, cara run lokal

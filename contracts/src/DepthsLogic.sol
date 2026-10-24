@@ -11,6 +11,7 @@ import {Encounter, Outcome, Resolution, InvalidFloor} from "./DepthsTypes.sol";
 ///      combat:    0 = flee/mimic/trap roll, 1 = loot treasure, mulai 1 = serangan combat
 library DepthsLogic {
     uint256 internal constant MMON = 1e15;
+    uint256 internal constant CMON = 1e16; // 0.01 MON, satuan tabel loot
 
     uint8 internal constant MAX_FLOOR = 20;
     uint16 internal constant BASE_HP = 100;
@@ -18,10 +19,20 @@ library DepthsLogic {
     uint256 internal constant MAX_ROUNDS = 64;
     uint16 internal constant POTION_HEAL = 50;
 
+    // Merchant, GAME_DESIGN §7
+    uint256 internal constant SWORD_PRICE = 400 * MMON;
+    uint256 internal constant SHIELD_PRICE = 400 * MMON;
+    uint256 internal constant POTION_PRICE = 200 * MMON;
+    uint256 internal constant MAX_SWORDS = 5;
+    uint256 internal constant MAX_SHIELDS = 5;
+    uint256 internal constant MAX_POTIONS = 3;
+    uint16 internal constant SWORD_ATK = 10;
+    uint16 internal constant SHIELD_HP = 20;
+
     // Tabel monster floor 1..20, 12 bit per floor (bit (floor-1)*12). Lihat GAME_DESIGN §4.1.
     uint256 private constant HP_TABLE = 0x3292c02642141cf19215e1301090e60c80aa09107806405004103402801e;
     uint256 private constant ATK_TABLE = 0x7c06f06305804f04603f03803202d02802201d01801300f00c009007005;
-    uint256 private constant LOOT_TABLE = 0x3292c02642141cf19215e1301090e60c80a007805a04603201e01400f00a; // mMON
+    uint256 private constant LOOT_TABLE = 0x6525804c842839e3242bc2602121cc1901400f00b408c06403c02801e014; // cMON
 
     /// @notice Stat monster untuk satu floor.
     /// @return hp HP monster
@@ -32,7 +43,7 @@ library DepthsLogic {
         uint256 shift = uint256(floor - 1) * 12;
         hp = uint16((HP_TABLE >> shift) & 0xfff);
         atk = uint16((ATK_TABLE >> shift) & 0xfff);
-        loot = uint128(((LOOT_TABLE >> shift) & 0xfff) * MMON);
+        loot = uint128(((LOOT_TABLE >> shift) & 0xfff) * CMON);
     }
 
     /// @notice Draw RNG ke-`i` dari sebuah seed: `uint256(keccak256(abi.encode(seed, i)))`.
@@ -129,6 +140,7 @@ library DepthsLogic {
     }
 
     /// @notice Resolusi OPEN treasure. 5% mimic: stat floor+2 (maks 20), loot 2× loot tabel floor ini.
+    ///         Bukan mimic: (10 + rand(1) % 41) × 20 mMON.
     function resolveTreasure(bytes32 seed, uint8 floor, uint16 hp, uint16 atk)
         internal
         pure
@@ -143,7 +155,7 @@ library DepthsLogic {
                 ? Resolution(Outcome.MIMIC_WIN, true, h, loot * 2, 0)
                 : Resolution(Outcome.MIMIC_KILLED, false, 0, 0, 0);
         }
-        uint128 amount = uint128((10 + rand(seed, 1) % 41) * MMON);
+        uint128 amount = uint128((10 + rand(seed, 1) % 41) * 20 * MMON); // 200–1000 mMON
         return Resolution(Outcome.TREASURE, true, hp, amount, 0);
     }
 
@@ -156,7 +168,7 @@ library DepthsLogic {
         uint256 r = rand(seed, 0) % 100;
         uint256 base = 10 + 3 * uint256(floor);
         if (disarm) {
-            if (r < 50) return Resolution(Outcome.DISARM_OK, true, hp, uint128(5 * uint256(floor) * MMON), 0);
+            if (r < 50) return Resolution(Outcome.DISARM_OK, true, hp, uint128(100 * uint256(floor) * MMON), 0);
             uint256 loss = 2 * base;
             if (loss >= hp) return Resolution(Outcome.DISARM_FAIL, false, 0, 0, 0);
             return Resolution(Outcome.DISARM_FAIL, true, uint16(hp - loss), 0, 0);

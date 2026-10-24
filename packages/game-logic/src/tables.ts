@@ -7,12 +7,14 @@ export const BASE_HP = 100;
 export const BASE_ATK = 12;
 export const MAX_ROUNDS = 64;
 export const POTION_HEAL = 50;
-export const ENTRY_FEE_MMON = 50;
+export const ENTRY_FEE_MMON = 1000;
 
 /** Index = floor - 1. Loot dalam mMON. GAME_DESIGN §4.1 */
 const HP = [30, 40, 52, 65, 80, 100, 120, 145, 170, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809] as const;
 const ATK = [5, 7, 9, 12, 15, 19, 24, 29, 34, 40, 45, 50, 56, 63, 70, 79, 88, 99, 111, 124] as const;
-const LOOT = [10, 15, 20, 30, 50, 70, 90, 120, 160, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809] as const;
+const LOOT = [
+  200, 300, 400, 600, 1000, 1400, 1800, 2400, 3200, 4000, 4600, 5300, 6080, 7000, 8040, 9260, 10640, 12240, 14080, 16180,
+] as const;
 
 export interface MonsterStats {
   hp: number;

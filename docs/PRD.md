@@ -13,7 +13,7 @@
 
 ## 1. Ringkasan
 
-Depths adalah web game roguelike push-your-luck yang seluruh state dan uangnya ada di smart contract Monad. Player bayar entry fee (default 0.05 MON) lalu turun lantai demi lantai. Di setiap lantai contract men-generate encounter acak: monster, treasure, trap, atau merchant. Player memilih aksi. Kalau survive, player memilih **CASH OUT** (bawa pulang semua loot) atau **GO DEEPER** (lantai lebih berbahaya, loot lebih besar). Kalau mati, semua loot run itu hilang dan masuk ke prize pool, jadi dungeon makin kaya setiap ada yang mati.
+Depths adalah web game roguelike push-your-luck yang seluruh state dan uangnya ada di smart contract Monad. Player bayar entry fee (default 1 MON) lalu turun lantai demi lantai. Di setiap lantai contract men-generate encounter acak: monster, treasure, trap, atau merchant. Player memilih aksi. Kalau survive, player memilih **CASH OUT** (bawa pulang semua loot) atau **GO DEEPER** (lantai lebih berbahaya, loot lebih besar). Kalau mati, semua loot run itu hilang dan masuk ke prize pool, jadi dungeon makin kaya setiap ada yang mati.
 
 ## 2. Problem & peluang
 
@@ -87,14 +87,14 @@ Depths adalah web game roguelike push-your-luck yang seluruh state dan uangnya a
 ### P2 / stretch
 - Sound design dan haptics.
 - Pyth Entropy sebagai randomness provider alternatif.
-- Shareable death card (OG image: "Mati di lantai 7 membawa 0.31 MON").
+- Shareable death card (OG image: "Mati di lantai 7 membawa 6.2 MON").
 - Mode spectator: tonton run orang lain secara live.
 
 ## 8. Ringkasan mekanik
 
 Detail lengkap dan semua angka ada di [GAME_DESIGN.md](GAME_DESIGN.md).
 
-- Entry fee 0.05 MON. 95% masuk prize pool, 5% ke treasury.
+- Entry fee 1 MON. 95% masuk prize pool, 5% ke treasury.
 - Stat awal player: HP 100, ATK 10.
 - Encounter per lantai: Monster 40%, Treasure 25% (5% di antaranya Mimic), Trap 15%, Merchant 20%.
 - Loot dari monster/treasure diambil dari prize pool ke "bag" run (di-escrow di contract).

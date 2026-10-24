@@ -193,7 +193,7 @@ Alur satu lantai di frontend:
 2. `enterDungeon(operator)` dipanggil dengan `msg.value = entryFee + gasTopUp`. Contract meneruskan `gasTopUp` ke operator (dibatasi `MAX_GAS_TOPUP`).
 3. Operator hanya bisa memanggil fungsi run milik owner yang mendaftarkannya. Run lain tidak bisa.
 4. Tombol "Withdraw session balance" mengirim sisa saldo burner ke owner.
-5. Top-up default **0.25 MON** (±10 lantai pada perkiraan ±0.02–0.025 MON per lantai di 102 gwei; diverifikasi ulang setelah gas report Phase 2). Kalau saldo burner di bawah biaya 2 lantai (±0.05 MON), tampilkan prompt top-up (popup main wallet).
+5. Top-up default **0.25 MON** (±14 lantai: gas report Phase 2 memberi ±152k gas ≈ 0.0155 MON per lantai di 102 gwei dengan margin 20%, lihat CONTRACT_SPEC §8 dan SPIKE_RESULTS). Kalau saldo burner di bawah biaya 2 lantai (±0.05 MON), tampilkan prompt top-up (popup main wallet).
 
 > Aturan *reserve balance* Monad untuk EOA bersaldo kecil belum diukur di spike Phase 0. Ukur di Phase 4 saat burner mendekati 0, lalu sesuaikan ambang.
 

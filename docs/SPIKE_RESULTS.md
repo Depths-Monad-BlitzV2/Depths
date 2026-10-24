@@ -61,10 +61,16 @@ Pakai target CONTRACT_SPEC §8 + 20%: descend 42k, reveal 60k, act 54k, settle 1
 | 5 | ~1.9M | ~0.19 MON |
 | 10 | ~3.6M | ~0.37 MON |
 
-Biaya gas run 10 lantai (~0.37 MON) **jauh di atas entry fee 0.05 MON**. Di testnet MON gratis, jadi tidak memblokir demo, tapi:
+Biaya gas run 10 lantai (~0.37 MON) **jauh di atas entry fee 0.05 MON saat spike**. Entry fee kemudian dinaikkan ke 1 MON (ekonomi ×20, GAME_DESIGN §4.1), jadi gas run kini ±25% entry dengan desain 2 tx. Catatan yang tetap berlaku:
 - Top-up default 0.1 MON (UI_UX §5) cuma cukup untuk ±2–3 lantai. `MAX_GAS_TOPUP` 0.5 MON cukup untuk ±14 lantai.
 - Tx revert tetap dibayar penuh, jadi tx `TooEarly` itu mahal. Jangan kirim reveal/settle sebelum blok target lewat.
 - `settle` sebaiknya memakai gas limit per aksi (treasure/trap/merchant jauh lebih murah dari combat 64 round) di `lib/gas.ts`.
+
+### Temuan Phase 2 (2026-10-23)
+
+- **Transient storage (EIP-1153) didukung.** Dicek tanpa tx lewat `eth_call` initcode `TSTORE 0x2a` → `TLOAD` → return: `cast call --rpc-url https://testnet-rpc.monad.xyz --create 0x602a60005d60005c60005260206000f3` mengembalikan `0x…2a`. Karena itu `Depths` memakai `ReentrancyGuardTransient`.
+- **Jadwal gas Monad berbeda dari Ethereum** ([docs.monad.xyz/developer-essentials/opcode-pricing](https://docs.monad.xyz/developer-essentials/opcode-pricing)): storage dihitung per page 128 slot (cold page 8.1k, page write pertama 2.8k, state growth 17k per slot baru), cold account 10.1k. Foundry 1.8 punya `--network monad` untuk mensimulasikannya. Gas per jalur di CONTRACT_SPEC §8 diukur dengan mode ini. Kalibrasi akhir tetap dengan `cast estimate` di testnet (Phase 3).
+- **Estimasi biaya baru (desain 2 tx, jadwal Monad, +20% margin, 102 gwei):** act ±64k + descend ±88k ≈ **152k gas per lantai ≈ 0.0155 MON**. Run 10 lantai ≈ 0.155 MON + cashOut ±0.013 MON dari burner. Top-up default 0.25 MON cukup untuk ±14 lantai. `enterDungeon` (107k–203k) dibayar main wallet.
 
 ### Belum diukur
 

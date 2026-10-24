@@ -129,6 +129,8 @@ event LootAwarded(address indexed owner, uint32 indexed runId, uint128 amount, u
 event CashedOut(address indexed owner, uint32 indexed runId, uint8 floor, uint128 amount);
 event RunDied(address indexed owner, uint32 indexed runId, uint8 floor, uint128 lostBag, uint8 cause);
 event PoolChanged(uint128 pool, uint128 reserved);
+event EntryFeeSet(uint128 entryFee);
+event TreasuryWithdrawn(address indexed to, uint128 amount);
 
 error NotRunController();
 error WrongState(RunState expected, RunState actual);
@@ -143,3 +145,6 @@ error NoPotion();
 error MaxFloorReached();
 error TransferFailed();
 error InvalidFloor();
+error BlockhashUnavailable(); // blockhash(targetBlock) == 0, jaga-jaga (CONTRACT_SPEC §7)
+error InvalidFee(); // setEntryFee di luar 0.2–20 MON
+error InsufficientTreasury();

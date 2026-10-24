@@ -6,7 +6,7 @@ Semua angka di sini adalah **sumber kebenaran** untuk `DepthsLogic.sol` dan `pac
 ## 1. Core loop
 
 ```
-Bayar entry (50 mMON) → Lantai 1
+Bayar entry (1000 mMON = 1 MON) → Lantai 1
   ┌─► Encounter muncul (monster / treasure / trap / merchant)
   │   Pilih aksi → hasil (menang / kalah / loot / damage)
   │   Mati? ──► RUN OVER. Bag hilang ke pool.
@@ -18,7 +18,7 @@ Bayar entry (50 mMON) → Lantai 1
 
 | Parameter | Nilai | Konstanta |
 |---|---|---|
-| Entry fee | 50 mMON (0.05 MON) | `entryFee` (owner-settable, 10–1000 mMON) |
+| Entry fee | 1000 mMON (1 MON) | `entryFee` (owner-settable, 200–20000 mMON) |
 | Rake | 5% dari entry | `RAKE_BPS = 500` |
 | Cap award per loot | 5% dari pool bebas | `MAX_AWARD_BPS = 500` |
 | Lantai maksimum | 20 (setelah clear → auto cash out) | `MAX_FLOOR = 20` |
@@ -45,18 +45,20 @@ Roll `r = rand(seedEncounter, 0) % 100`:
 
 | Floor | HP | ATK | Loot (mMON) | | Floor | HP | ATK | Loot (mMON) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 30 | 5 | 10 | | 11 | 230 | 45 | 230 |
-| 2 | 40 | 7 | 15 | | 12 | 265 | 50 | 265 |
-| 3 | 52 | 9 | 20 | | 13 | 304 | 56 | 304 |
-| 4 | 65 | 12 | 30 | | 14 | 350 | 63 | 350 |
-| 5 | 80 | 15 | 50 | | 15 | 402 | 70 | 402 |
-| 6 | 100 | 19 | 70 | | 16 | 463 | 79 | 463 |
-| 7 | 120 | 24 | 90 | | 17 | 532 | 88 | 532 |
-| 8 | 145 | 29 | 120 | | 18 | 612 | 99 | 612 |
-| 9 | 170 | 34 | 160 | | 19 | 704 | 111 | 704 |
-| 10 | 200 | 40 | 200 | | 20 | 809 | 124 | 809 |
+| 1 | 30 | 5 | 200 | | 11 | 230 | 45 | 4600 |
+| 2 | 40 | 7 | 300 | | 12 | 265 | 50 | 5300 |
+| 3 | 52 | 9 | 400 | | 13 | 304 | 56 | 6080 |
+| 4 | 65 | 12 | 600 | | 14 | 350 | 63 | 7000 |
+| 5 | 80 | 15 | 1000 | | 15 | 402 | 70 | 8040 |
+| 6 | 100 | 19 | 1400 | | 16 | 463 | 79 | 9260 |
+| 7 | 120 | 24 | 1800 | | 17 | 532 | 88 | 10640 |
+| 8 | 145 | 29 | 2400 | | 18 | 612 | 99 | 12240 |
+| 9 | 170 | 34 | 3200 | | 19 | 704 | 111 | 14080 |
+| 10 | 200 | 40 | 4000 | | 20 | 809 | 124 | 16180 |
 
 Floor 11–20 mengikuti HP & loot ×1.15/floor dan ATK ×1.12/floor, dibulatkan, lalu di-hardcode di tabel (tanpa kalkulasi eksponen on-chain).
+
+Skala ekonomi ×20 (2026-10-22): entry fee naik dari 50 ke 1000 mMON, dan semua loot, harga, treasure, serta salvage ikut ×20 supaya RTP tidak berubah. Di contract, tabel loot disimpan dalam cMON (0.01 MON) karena 16180 tidak muat di slot 12-bit.
 Loot aktual = `min(tabelLoot, pool × 5%)`.
 
 Nama monster (cuma kosmetik, `monsterId = tier × 4 + rand(seedEncounter, 1) % 4`, tier 0–3): floor 1–3 Rat / Slime / Bat / Goblin · 4–6 Skeleton / Orc / Wraith / Spider · 7–10 Troll / Minotaur / Lich / Wyvern · 11–20 Dragon / Demon / Abyss Lord / Void Horror.
@@ -100,7 +102,7 @@ Index 1 dipakai bersama oleh loot treasure dan combat mimic, tapi keduanya tidak
 
 | Aksi | Efek |
 |---|---|
-| `OPEN` | Roll `rand(0) % 100`: **0–4 → MIMIC** (5%), sisanya loot `10 + rand(1) % 41` mMON (10–50 mMON, dicap 5% pool) |
+| `OPEN` | Roll `rand(0) % 100`: **0–4 → MIMIC** (5%), sisanya loot `(10 + rand(1) % 41) × 20` mMON (200–1000 mMON, kelipatan 20, dicap 5% pool) |
 | `LEAVE` | Tanpa efek, lantai clear (instan, tanpa RNG) |
 
 **Mimic:** combat wajib (tidak bisa flee) dengan stat monster `floor + 2` (maks floor 20), player menyerang duluan. Kalau menang, loot = 2 × loot tabel **floor saat ini** (bukan floor + 2), lalu dicap 5% pool. Flag `usePotion` tetap berlaku.
@@ -110,15 +112,15 @@ Index 1 dipakai bersama oleh loot treasure dan combat mimic, tapi keduanya tidak
 | Aksi | Efek |
 |---|---|
 | `PROCEED` | 60%: kehilangan HP `10 + 3 × floor` (**tidak fatal**, HP minimal 1). 40%: kehilangan 20% bag ke pool. Kalau bag = 0, yang terjadi selalu kehilangan HP |
-| `DISARM` | 50% sukses: tanpa kerugian + salvage `5 × floor` mMON. 50% gagal: kehilangan HP `2 × (10 + 3 × floor)`, **bisa fatal** |
+| `DISARM` | 50% sukses: tanpa kerugian + salvage `100 × floor` mMON. 50% gagal: kehilangan HP `2 × (10 + 3 × floor)`, **bisa fatal** |
 
 ## 7. Merchant
 
 | Item | Harga | Efek | Batas |
 |---|---|---|---|
-| 🗡️ Sword | 20 mMON | +10 ATK permanen (untuk run ini) | maks 5 |
-| 🛡️ Shield | 20 mMON | +20 Max HP **dan** +20 HP | maks 5 |
-| 🧪 Potion | 10 mMON | disimpan, +50 HP saat dipakai | bawa maks 3 |
+| 🗡️ Sword | 400 mMON | +10 ATK permanen (untuk run ini) | maks 5 |
+| 🛡️ Shield | 400 mMON | +20 Max HP **dan** +20 HP | maks 5 |
+| 🧪 Potion | 200 mMON | disimpan, +50 HP saat dipakai | bawa maks 3 |
 
 - Aksi `BUY(swordQty, shieldQty, potionQty)` dibayar dari bag. Revert kalau bag kurang atau melebihi batas. Instan, tanpa RNG → lantai clear.
 - Aksi `LEAVE` → lantai clear.
@@ -135,14 +137,14 @@ Index 1 dipakai bersama oleh loot treasure dan combat mimic, tapi keduanya tidak
 
 Monte Carlo 100k run per strategi, pool dianggap tak terbatas (tanpa cap 5%). Script: `pnpm -F game-logic simulate --runs 100000 --seed 1` (`packages/game-logic/src/simulate.ts`). Simulasi memakai fungsi resolusi yang sama dengan contract (dmg integer, MAX_ROUNDS, mimic floor + 2, potion sebelum resolusi). Trap selalu PROCEED, treasure selalu OPEN tanpa potion.
 
-| Strategi | Aturan singkat | RTP | Payout nol | Rata-rata floor | Payout ≥ 0.1 MON |
+| Strategi | Aturan singkat | RTP | Payout nol | Rata-rata floor | Payout ≥ 2× entry |
 |---|---|---|---|---|---|
-| Cautious | cash out di ≥60 mMON atau floor 5 | 90.5% | 14.6% | 4.1 | 1.1% |
-| Balanced | cash out di ≥120 mMON atau floor 8 | 74.8% | 46.6% | 5.8 | 13.4% |
-| Greedy | cash out di ≥300 mMON atau floor 12 | 38.3% | 74.7% | 6.8 | 5.8% |
+| Cautious | cash out di ≥1200 mMON atau floor 5 | 90.5% | 14.5% | 4.1 | 1.1% |
+| Balanced | cash out di ≥2400 mMON atau floor 8 | 74.9% | 46.4% | 5.8 | 13.4% |
+| Greedy | cash out di ≥6000 mMON atau floor 12 | 38.4% | 74.6% | 6.8 | 5.8% |
 | YOLO | tidak pernah cash out | 0.1% | 100.0% | 6.7 | 0% |
 
-_Update Phase 1 (2026-10-22): hasil TS mirror, baseline prototipe sebelumnya 89.6 / 74.1 / 38.1 / ~0%._
+_Update 2026-10-22: hasil TS mirror setelah skala ekonomi ×20 (sebelum skala: 90.5 / 74.8 / 38.3 / 0.1%; baseline prototipe 89.6 / 74.1 / 38.1 / ~0%)._
 
 Interpretasi:
 - Semua strategi RTP < 100% → pool **tumbuh** (ditambah rake 5%). Ekonomi sustain.
@@ -154,5 +156,5 @@ Knob tuning kalau RTP keluar target: `BASE_ATK` (paling sensitif, +2 ATK ≈ +7p
 ## 10. Tone & flavor
 
 - Gelap, pixel-art, sedikit humor ("Kamu menginjak tombol yang jelas-jelas mencurigakan.").
-- Teks kematian personal: "Kamu mati di Lantai 7. 0.31 MON kini milik dungeon."
+- Teks kematian personal: "Kamu mati di Lantai 7. 6.2 MON kini milik dungeon."
 - Makin dalam: palet makin merah, heartbeat makin cepat, vignette makin tebal.

@@ -99,8 +99,8 @@ Aturan audit: setiap nama harus punya sprite. Kalau pack utama tidak punya, ambi
 
 ### 3.1 Landing `/`
 - Hero: judul DEPTHS, tagline, angka **PRIZE POOL** besar dan live (animasi count-up saat berubah).
-- CTA "ENTER THE DUNGEON — 0.05 MON".
-- Live feed (kanan / bawah di mobile): "0x12…ab mati di Lantai 6 (-0.21 MON)", "0x9f…01 cash out 0.34 MON dari Lantai 8".
+- CTA "ENTER THE DUNGEON — 1 MON".
+- Live feed (kanan / bawah di mobile): "0x12…ab mati di Lantai 6 (-4.2 MON)", "0x9f…01 cash out 6.8 MON dari Lantai 8".
 - Strip statistik: total run, kematian, lantai terdalam hari ini.
 - "How it works" dalam 4 kartu: Bayar → Turun → Pilih → Cash out atau mati.
 
@@ -108,12 +108,12 @@ Aturan audit: setiap nama harus punya sprite. Kalau pack utama tidak punya, ambi
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│ FLOOR 7  ▓▓▓▓▓▓▓░░░  depth meter        POOL 12.48 MON         │
+│ FLOOR 7  ▓▓▓▓▓▓▓░░░  depth meter        POOL 249.6 MON         │
 ├───────────────────────────────────────┬───────────────────────┤
 │                                       │ ❤ HP 64 / 140         │
 │        [ DUNGEON SCENE ]              │ ⚔ ATK 32              │
 │        sprite player vs encounter     │ 🧪 x2  🗡 x2  🛡 x2    │
-│                                       │ 💰 BAG 0.214 MON      │
+│                                       │ 💰 BAG 4.280 MON      │
 │                                       ├───────────────────────┤
 │  ENCOUNTER CARD                       │ COMBAT / EVENT LOG    │
 │  🐉 Troll — HP 120 ATK 24             │ > You hit for 31      │
@@ -154,12 +154,12 @@ Ambil event run itu, tampilkan setiap lantai: blockhash target, seed, encounter,
             ╔══════════════════════════════════╗
             ║        FLOOR 7 CLEARED           ║
             ║                                  ║
-            ║   BAG: 0.214 MON   HP: 64/140    ║
+            ║   BAG: 4.280 MON   HP: 64/140    ║
             ║                                  ║
             ║  Next floor: monster ≈ HP 145    ║
-            ║  ATK 29, loot up to 0.12 MON     ║
+            ║  ATK 29, loot up to 2.4 MON      ║
             ║                                  ║
-            ║ [🟢 CASH OUT 0.214]  [🔴 GO DEEPER] ║
+            ║ [🟢 CASH OUT 4.280]  [🔴 GO DEEPER] ║
             ╚══════════════════════════════════╝
 ```
 
