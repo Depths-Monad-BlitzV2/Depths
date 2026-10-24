@@ -68,7 +68,7 @@ uint8   internal _cashLen;              // jumlah entry terisi per board, satu s
 uint8   internal _depthLen;
 ```
 
-Konstanta: `RAKE_BPS=500`, `MAX_AWARD_BPS=500`, `MAX_FLOOR=20`, `BASE_HP=100`, `BASE_ATK=12`, `BLOCKHASH_WINDOW=256`, `MAX_GAS_TOPUP=0.5 ether`, `MAX_ROUNDS=64`, `PURPOSE_ENCOUNTER=1`, `PURPOSE_RESOLVE=2`, `MIN_ENTRY_FEE=0.2 ether`, `MAX_ENTRY_FEE=20 ether`. Harga dan batas merchant (`SWORD_PRICE` dst.) ada di `DepthsLogic` karena termasuk angka gameplay.
+Konstanta: `RAKE_BPS=500`, `MAX_AWARD_BPS=500`, `MAX_FLOOR=20`, `BASE_HP=130`, `BASE_ATK=12`, `BLOCKHASH_WINDOW=256`, `MAX_GAS_TOPUP=0.5 ether`, `MAX_ROUNDS=64`, `PURPOSE_ENCOUNTER=1`, `PURPOSE_RESOLVE=2`, `MIN_ENTRY_FEE=0.2 ether`, `MAX_ENTRY_FEE=20 ether`. Harga dan batas merchant (`SWORD_PRICE` dst.) ada di `DepthsLogic` karena termasuk angka gameplay.
 
 **Run tidak di-`delete` (Phase 2, alasan gas).** Saat run selesai (mati/cash out), contract hanya menulis `state = NONE` dan `bag = 0`. Slot lain dibiarkan, sehingga run berikutnya menulis non-zero → non-zero, bukan 0 → non-zero (state growth 17k per slot di Monad). Refund dari `delete` tidak membantu karena Monad menagih gas limit. Konsekuensinya:
 - `getRun(owner)` mengembalikan struct kosong untuk state NONE.

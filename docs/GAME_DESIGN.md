@@ -22,7 +22,7 @@ Bayar entry (1000 mMON = 1 MON) → Lantai 1
 | Rake | 5% dari entry | `RAKE_BPS = 500` |
 | Cap award per loot | 5% dari pool bebas | `MAX_AWARD_BPS = 500` |
 | Lantai maksimum | 20 (setelah clear → auto cash out) | `MAX_FLOOR = 20` |
-| HP awal / Max HP awal | 100 / 100 | `BASE_HP` |
+| HP awal / Max HP awal | 130 / 130 | `BASE_HP` |
 | ATK awal | 12 | `BASE_ATK` |
 | Potion awal | 0 | |
 | Window expiry RNG | 256 block | `BLOCKHASH_WINDOW` |
@@ -39,24 +39,28 @@ Roll `r = rand(seedEncounter, 0) % 100`:
 | 65–79 | 🪤 Trap | 15% |
 | 80–99 | 🏪 Merchant | 20% |
 
+**Syarat merchant:** merchant hanya muncul kalau bag ≥ harga item termurah (potion, 200 mMON). Kalau bag kurang, roll 80–99 menjadi 💰 Treasure. Lantai 1 (bag selalu 0) jadi tidak pernah merchant. Di contract: `rollEncounter(seed, floor, bag)` memakai `r.bag` saat reveal.
+
 ## 4. Monster
 
 ### 4.1 Tabel stat (HP, ATK, loot)
 
 | Floor | HP | ATK | Loot (mMON) | | Floor | HP | ATK | Loot (mMON) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 30 | 5 | 200 | | 11 | 230 | 45 | 4600 |
-| 2 | 40 | 7 | 300 | | 12 | 265 | 50 | 5300 |
-| 3 | 52 | 9 | 400 | | 13 | 304 | 56 | 6080 |
-| 4 | 65 | 12 | 600 | | 14 | 350 | 63 | 7000 |
-| 5 | 80 | 15 | 1000 | | 15 | 402 | 70 | 8040 |
-| 6 | 100 | 19 | 1400 | | 16 | 463 | 79 | 9260 |
-| 7 | 120 | 24 | 1800 | | 17 | 532 | 88 | 10640 |
-| 8 | 145 | 29 | 2400 | | 18 | 612 | 99 | 12240 |
-| 9 | 170 | 34 | 3200 | | 19 | 704 | 111 | 14080 |
-| 10 | 200 | 40 | 4000 | | 20 | 809 | 124 | 16180 |
+| 1 | 30 | 5 | 120 | | 11 | 230 | 45 | 4600 |
+| 2 | 40 | 7 | 200 | | 12 | 265 | 50 | 5300 |
+| 3 | 52 | 9 | 300 | | 13 | 304 | 56 | 6080 |
+| 4 | 60 | 10 | 450 | | 14 | 350 | 63 | 7000 |
+| 5 | 72 | 12 | 700 | | 15 | 402 | 70 | 8040 |
+| 6 | 88 | 15 | 1100 | | 16 | 463 | 79 | 9260 |
+| 7 | 105 | 19 | 1500 | | 17 | 532 | 88 | 10640 |
+| 8 | 125 | 23 | 2000 | | 18 | 612 | 99 | 12240 |
+| 9 | 148 | 27 | 2700 | | 19 | 704 | 111 | 14080 |
+| 10 | 175 | 32 | 3500 | | 20 | 809 | 124 | 16180 |
 
 Floor 11–20 mengikuti HP & loot ×1.15/floor dan ATK ×1.12/floor, dibulatkan, lalu di-hardcode di tabel (tanpa kalkulasi eksponen on-chain).
+
+_Rebalance 2026-10-24 ("lebih mudah"): floor 4–10 HP −8…−13% dan ATK −17…−21%, loot floor 1–10 −12…−40%, BASE_HP 100 → 130, treasure 200–1000 → 150–600 mMON, plus syarat merchant (§3). Floor 11–20 tidak berubah. Tujuan: kematian di floor ≤ 5 turun ±60% tanpa membuat RTP strategi terbaik keluar target 85–95% (§9)._
 
 Skala ekonomi ×20 (2026-10-22): entry fee naik dari 50 ke 1000 mMON, dan semua loot, harga, treasure, serta salvage ikut ×20 supaya RTP tidak berubah. Di contract, tabel loot disimpan dalam cMON (0.01 MON) karena 16180 tidak muat di slot 12-bit.
 Loot aktual = `min(tabelLoot, pool × 5%)`.
@@ -104,7 +108,7 @@ Index 1 dipakai bersama oleh loot treasure dan combat mimic, tapi keduanya tidak
 
 | Aksi | Efek |
 |---|---|
-| `OPEN` | Roll `rand(0) % 100`: **0–4 → MIMIC** (5%), sisanya loot `(10 + rand(1) % 41) × 20` mMON (200–1000 mMON, kelipatan 20, dicap 5% pool) |
+| `OPEN` | Roll `rand(0) % 100`: **0–4 → MIMIC** (5%), sisanya loot `(10 + rand(1) % 31) × 15` mMON (150–600 mMON, kelipatan 15, dicap 5% pool) |
 | `LEAVE` | Tanpa efek, lantai clear (instan, tanpa RNG) |
 
 **Mimic:** combat wajib (tidak bisa flee) dengan stat monster `floor + 2` (maks floor 20), player menyerang duluan. Kalau menang, loot = 2 × loot tabel **floor saat ini** (bukan floor + 2), lalu dicap 5% pool. Flag `usePotion` tetap berlaku.
@@ -141,10 +145,12 @@ Monte Carlo 100k run per strategi, pool dianggap tak terbatas (tanpa cap 5%). Sc
 
 | Strategi | Aturan singkat | RTP | Payout nol | Rata-rata floor | Payout ≥ 2× entry |
 |---|---|---|---|---|---|
-| Cautious | cash out di ≥1200 mMON atau floor 5 | 90.5% | 14.5% | 4.1 | 1.1% |
-| Balanced | cash out di ≥2400 mMON atau floor 8 | 74.9% | 46.4% | 5.8 | 13.4% |
-| Greedy | cash out di ≥6000 mMON atau floor 12 | 38.4% | 74.6% | 6.8 | 5.8% |
-| YOLO | tidak pernah cash out | 0.1% | 100.0% | 6.7 | 0% |
+| Cautious | cash out di ≥1200 mMON atau floor 5 | 89.5% | 6.1% | 4.7 | 0.1% |
+| Balanced | cash out di ≥2400 mMON atau floor 8 | 83.7% | 38.3% | 6.6 | 15.6% |
+| Greedy | cash out di ≥6000 mMON atau floor 12 | 42.7% | 73.2% | 7.9 | 8.0% |
+| YOLO | tidak pernah cash out | 0.1% | 99.9% | 8.0 | 0% |
+
+_Update 2026-10-24 (rebalance §4.1): sebelumnya 90.5 / 74.9 / 38.4 / 0.1% RTP dengan payout nol 14.5 / 46.4 / 74.6 / 100%. Kematian di floor ≤ 5 (simulasi 20k run): cautious 14.2 → 5.9%, balanced 22.0 → 8.9%, YOLO 39.1 → 15.3%._
 
 _Update 2026-10-22: hasil TS mirror setelah skala ekonomi ×20 (sebelum skala: 90.5 / 74.8 / 38.3 / 0.1%; baseline prototipe 89.6 / 74.1 / 38.1 / ~0%)._
 

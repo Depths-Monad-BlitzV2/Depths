@@ -61,7 +61,7 @@ export function EncounterCard(props: {
       )}
       {encounter === Encounter.TREASURE && (
         <p className="text-sm opacity-80">
-          Isi 0.200–1.000 MON. 5% mimic (stat lantai {mimicFloor(floor)}), kalau menang loot{' '}
+          Isi 0.150–0.600 MON. 5% mimic (stat lantai {mimicFloor(floor)}), kalau menang loot{' '}
           {mon(cappedAward(monster(floor).loot * 2n, pool))} MON.
         </p>
       )}

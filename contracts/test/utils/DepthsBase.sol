@@ -117,11 +117,18 @@ abstract contract DepthsBase is Test {
         d.cashOut();
     }
 
-    /// @dev Lewati lantai dengan merchant LEAVE sampai `floor` (state AWAIT_REVEAL di floor itu).
+    /// @dev Lewati lantai dengan treasure LEAVE (instan, tanpa RNG) sampai `floor` (state AWAIT_REVEAL di floor itu).
     function _reachFloor(address owner, address caller, uint8 floor) internal {
         while (_run(owner).floor < floor) {
-            _act(caller, owner, Encounter.MERCHANT, Action.LEAVE, false);
+            _act(caller, owner, Encounter.TREASURE, Action.LEAVE, false);
             _descend(caller);
+        }
+    }
+
+    /// @dev Isi bag lewat `_lootFloors` sampai minimal `minBag` (mis. supaya merchant bisa muncul).
+    function _lootUntil(address owner, address caller, uint256 minBag) internal {
+        while (_run(owner).bag < minBag) {
+            _lootFloors(owner, caller, 1);
         }
     }
 

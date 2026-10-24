@@ -17,11 +17,11 @@ contract DepthsLogicTest is Test {
     LogicHarness harness = new LogicHarness();
 
     // GAME_DESIGN §4.1
-    uint16[20] HP = [30, 40, 52, 65, 80, 100, 120, 145, 170, 200, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809];
-    uint16[20] ATK = [5, 7, 9, 12, 15, 19, 24, 29, 34, 40, 45, 50, 56, 63, 70, 79, 88, 99, 111, 124];
+    uint16[20] HP = [30, 40, 52, 60, 72, 88, 105, 125, 148, 175, 230, 265, 304, 350, 402, 463, 532, 612, 704, 809];
+    uint16[20] ATK = [5, 7, 9, 10, 12, 15, 19, 23, 27, 32, 45, 50, 56, 63, 70, 79, 88, 99, 111, 124];
     // loot dalam mMON (entry fee 1000 mMON)
     uint32[20] LOOT =
-        [200, 300, 400, 600, 1000, 1400, 1800, 2400, 3200, 4000, 4600, 5300, 6080, 7000, 8040, 9260, 10640, 12240, 14080, 16180];
+        [120, 200, 300, 450, 700, 1100, 1500, 2000, 2700, 3500, 4600, 5300, 6080, 7000, 8040, 9260, 10640, 12240, 14080, 16180];
 
     // ---------------------------------------------------------------- tabel
 
@@ -80,15 +80,30 @@ contract DepthsLogicTest is Test {
         assertEq(DepthsLogic.tierOf(20), 3);
     }
 
-    function testFuzz_rollEncounter(bytes32 seed, uint8 floor) public pure {
+    function testFuzz_rollEncounter(bytes32 seed, uint8 floor, uint128 bag) public pure {
         floor = uint8(bound(floor, 1, 20));
-        (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, floor);
+        (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, floor, bag);
         uint256 r = DepthsLogic.rand(seed, 0) % 100;
-        Encounter expected = r < 40
-            ? Encounter.MONSTER
-            : r < 65 ? Encounter.TREASURE : r < 80 ? Encounter.TRAP : Encounter.MERCHANT;
+        Encounter merchant = bag >= DepthsLogic.POTION_PRICE ? Encounter.MERCHANT : Encounter.TREASURE;
+        Encounter expected =
+            r < 40 ? Encounter.MONSTER : r < 65 ? Encounter.TREASURE : r < 80 ? Encounter.TRAP : merchant;
         assertEq(uint8(enc), uint8(expected));
         assertEq(monsterId / 4, DepthsLogic.tierOf(floor));
+    }
+
+    /// Merchant butuh bag ≥ harga potion; di bawah itu slot merchant jadi treasure (GAME_DESIGN §3).
+    function test_rollEncounter_merchantNeedsBag() public pure {
+        bytes32 seed;
+        for (uint256 k;; ++k) {
+            seed = keccak256(abi.encode("merchant", k));
+            if (DepthsLogic.rand(seed, 0) % 100 >= 80) break;
+        }
+        (Encounter broke,) = DepthsLogic.rollEncounter(seed, 1, 0);
+        (Encounter almost,) = DepthsLogic.rollEncounter(seed, 3, uint128(DepthsLogic.POTION_PRICE - 1));
+        (Encounter enough,) = DepthsLogic.rollEncounter(seed, 3, uint128(DepthsLogic.POTION_PRICE));
+        assertEq(uint8(broke), uint8(Encounter.TREASURE));
+        assertEq(uint8(almost), uint8(Encounter.TREASURE));
+        assertEq(uint8(enough), uint8(Encounter.MERCHANT));
     }
 
     function test_fleeChance() public pure {
@@ -196,9 +211,9 @@ contract DepthsLogicTest is Test {
         } else {
             assertEq(uint8(res.outcome), uint8(Outcome.TREASURE));
             assertEq(res.hpAfter, hp);
-            assertGe(res.lootTable, 200 * MMON);
-            assertLe(res.lootTable, 1000 * MMON);
-            assertEq(res.lootTable % (20 * MMON), 0);
+            assertGe(res.lootTable, 150 * MMON);
+            assertLe(res.lootTable, 600 * MMON);
+            assertEq(res.lootTable % (15 * MMON), 0);
         }
     }
 

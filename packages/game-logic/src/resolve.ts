@@ -1,12 +1,16 @@
-import { MAX_FLOOR, MMON, monster, tierOf } from './tables';
+import { MAX_FLOOR, MMON, POTION_PRICE, monster, tierOf } from './tables';
 import { resolveCombat, type CombatSink } from './combat';
 import type { Draw } from './rng';
 import { Encounter, Outcome, type Resolution } from './types';
 
-/** Mirror DepthsLogic.rollEncounter. `monsterId = tier * 4 + rand(1) % 4`. */
-export function rollEncounter(draw: Draw, floor: number): { enc: Encounter; monsterId: number } {
+/**
+ * Mirror DepthsLogic.rollEncounter. `monsterId = tier * 4 + rand(1) % 4`.
+ * Merchant hanya muncul kalau bag cukup untuk item termurah (potion); kalau tidak, jadi treasure.
+ */
+export function rollEncounter(draw: Draw, floor: number, bag: bigint): { enc: Encounter; monsterId: number } {
   const r = draw(0, 100);
-  const enc = r < 40 ? Encounter.MONSTER : r < 65 ? Encounter.TREASURE : r < 80 ? Encounter.TRAP : Encounter.MERCHANT;
+  let enc = r < 40 ? Encounter.MONSTER : r < 65 ? Encounter.TREASURE : r < 80 ? Encounter.TRAP : Encounter.MERCHANT;
+  if (enc === Encounter.MERCHANT && bag < POTION_PRICE) enc = Encounter.TREASURE;
   return { enc, monsterId: tierOf(floor) * 4 + draw(1, 4) };
 }
 
@@ -67,7 +71,7 @@ export function resolveTreasure(draw: Draw, floor: number, hp: number, atk: numb
     if (!c.win) return died(Outcome.MIMIC_KILLED);
     return { outcome: Outcome.MIMIC_WIN, survived: true, hpAfter: c.hpAfter, lootTable: monster(floor).loot * 2n, bagLoss: 0n };
   }
-  const amount = BigInt((10 + draw(1, 41)) * 20) * MMON; // 200–1000 mMON
+  const amount = BigInt((10 + draw(1, 31)) * 15) * MMON; // 150–600 mMON
   return { outcome: Outcome.TREASURE, survived: true, hpAfter: hp, lootTable: amount, bagLoss: 0n };
 }
 

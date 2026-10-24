@@ -292,7 +292,7 @@ contract Depths is IDepths, Ownable2Step, Pausable, ReentrancyGuardTransient {
         ready = block.number > r.targetBlock;
         expired = _expired(r);
         if (ready && !expired) {
-            (enc, monsterId) = DepthsLogic.rollEncounter(_seed(r, owner, PURPOSE_ENCOUNTER), r.floor);
+            (enc, monsterId) = DepthsLogic.rollEncounter(_seed(r, owner, PURPOSE_ENCOUNTER), r.floor, r.bag);
         }
     }
 
@@ -340,7 +340,7 @@ contract Depths is IDepths, Ownable2Step, Pausable, ReentrancyGuardTransient {
             return false;
         }
         bytes32 seed = _seed(r, owner, PURPOSE_ENCOUNTER);
-        (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, r.floor);
+        (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, r.floor, r.bag);
         r.encounter = uint8(enc);
         r.monsterId = monsterId;
         r.encounterSeed = seed;

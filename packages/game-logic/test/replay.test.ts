@@ -6,6 +6,7 @@ import {
   Outcome,
   POTION_HEAL,
   estimateWinChance,
+  monster,
   mulberry32,
   rand,
   replayCombat,
@@ -86,7 +87,7 @@ describe('replayCombat', () => {
       if (rand(s, 0) % 100n < 5n) seed = s;
     }
     const r = replayCombat({ seed, kind: 'open', floor: 5, hp: 300, maxHp: 300, atk: 62, usePotion: false });
-    expect(r.opponent?.hp).toBe(120); // floor 7
+    expect(r.opponent?.hp).toBe(monster(7).hp);
     expect(r.events[0]?.type).toBe('playerHit');
     expect(r.result).toEqual(resolveTreasure(seedDraw(seed), 5, 300, 62));
   });

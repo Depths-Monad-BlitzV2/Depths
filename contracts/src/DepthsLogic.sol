@@ -14,7 +14,7 @@ library DepthsLogic {
     uint256 internal constant CMON = 1e16; // 0.01 MON, satuan tabel loot
 
     uint8 internal constant MAX_FLOOR = 20;
-    uint16 internal constant BASE_HP = 100;
+    uint16 internal constant BASE_HP = 130;
     uint16 internal constant BASE_ATK = 12;
     uint256 internal constant MAX_ROUNDS = 64;
     uint16 internal constant POTION_HEAL = 50;
@@ -30,9 +30,9 @@ library DepthsLogic {
     uint16 internal constant SHIELD_HP = 20;
 
     // Tabel monster floor 1..20, 12 bit per floor (bit (floor-1)*12). Lihat GAME_DESIGN §4.1.
-    uint256 private constant HP_TABLE = 0x3292c02642141cf19215e1301090e60c80aa09107806405004103402801e;
-    uint256 private constant ATK_TABLE = 0x7c06f06305804f04603f03803202d02802201d01801300f00c009007005;
-    uint256 private constant LOOT_TABLE = 0x6525804c842839e3242bc2602121cc1901400f00b408c06403c02801e014; // cMON
+    uint256 private constant HP_TABLE = 0x3292c02642141cf19215e1301090e60af09407d06905804803c03402801e;
+    uint256 private constant ATK_TABLE = 0x7c06f06305804f04603f03803202d02001b01701300f00c00a009007005;
+    uint256 private constant LOOT_TABLE = 0x6525804c842839e3242bc2602121cc15e10e0c809606e04602d01e01400c; // cMON
 
     /// @notice Stat monster untuk satu floor.
     /// @return hp HP monster
@@ -74,12 +74,17 @@ library DepthsLogic {
     }
 
     /// @notice Roll encounter lantai. `monsterId = tier * 4 + rand(1) % 4` (kosmetik, selalu dihitung).
-    function rollEncounter(bytes32 seed, uint8 floor) internal pure returns (Encounter enc, uint8 monsterId) {
+    ///         Merchant hanya muncul kalau `bag` cukup untuk item termurah (potion); kalau tidak, jadi treasure.
+    function rollEncounter(bytes32 seed, uint8 floor, uint128 bag)
+        internal
+        pure
+        returns (Encounter enc, uint8 monsterId)
+    {
         uint256 r = rand(seed, 0) % 100;
         if (r < 40) enc = Encounter.MONSTER;
         else if (r < 65) enc = Encounter.TREASURE;
         else if (r < 80) enc = Encounter.TRAP;
-        else enc = Encounter.MERCHANT;
+        else enc = bag >= POTION_PRICE ? Encounter.MERCHANT : Encounter.TREASURE;
         monsterId = tierOf(floor) * 4 + uint8(rand(seed, 1) % 4);
     }
 
@@ -140,7 +145,7 @@ library DepthsLogic {
     }
 
     /// @notice Resolusi OPEN treasure. 5% mimic: stat floor+2 (maks 20), loot 2× loot tabel floor ini.
-    ///         Bukan mimic: (10 + rand(1) % 41) × 20 mMON.
+    ///         Bukan mimic: (10 + rand(1) % 31) × 15 mMON.
     function resolveTreasure(bytes32 seed, uint8 floor, uint16 hp, uint16 atk)
         internal
         pure
@@ -155,7 +160,7 @@ library DepthsLogic {
                 ? Resolution(Outcome.MIMIC_WIN, true, h, loot * 2, 0)
                 : Resolution(Outcome.MIMIC_KILLED, false, 0, 0, 0);
         }
-        uint128 amount = uint128((10 + rand(seed, 1) % 41) * 20 * MMON); // 200–1000 mMON
+        uint128 amount = uint128((10 + rand(seed, 1) % 31) * 15 * MMON); // 150–600 mMON
         return Resolution(Outcome.TREASURE, true, hp, amount, 0);
     }
 

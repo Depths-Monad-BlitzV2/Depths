@@ -62,7 +62,7 @@ export function simulateRun(s: Strategy, rng: () => number, winChanceSamples = 2
   let bag = 0n;
 
   for (let floor = 1; floor <= MAX_FLOOR; floor++) {
-    const { enc } = rollEncounter(draw, floor);
+    const { enc } = rollEncounter(draw, floor, bag);
     if (enc === Encounter.MONSTER) {
       if (hp < maxHp - 40 && potions > 0) {
         potions--;

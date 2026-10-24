@@ -193,8 +193,8 @@ contract DepthsTest is DepthsBase {
         assertEq(r.runId, 1);
         assertEq(r.state, uint8(RunState.AWAIT_REVEAL));
         assertEq(r.floor, 1);
-        assertEq(r.hp, 100);
-        assertEq(r.maxHp, 100);
+        assertEq(r.hp, DepthsLogic.BASE_HP);
+        assertEq(r.maxHp, DepthsLogic.BASE_HP);
         assertEq(r.atk, 12);
         assertEq(r.targetBlock, target);
         assertEq(r.bag, 0);
@@ -340,6 +340,7 @@ contract DepthsTest is DepthsBase {
 
     function test_act_invalidActionPerEncounter() public {
         _enter(alice, aliceOp);
+        _lootUntil(alice, aliceOp, DepthsLogic.POTION_PRICE);
         _roll(2);
         Action[4][4] memory invalid = [
             [Action.OPEN, Action.PROCEED, Action.BUY, Action.LEAVE], // MONSTER
@@ -362,6 +363,7 @@ contract DepthsTest is DepthsBase {
 
     function test_act_quantitiesOnlyForBuy() public {
         _enter(alice, aliceOp);
+        _lootUntil(alice, aliceOp, DepthsLogic.POTION_PRICE);
         _roll(2);
         _forceEncounter(alice, Encounter.MONSTER);
         vm.expectRevert(InvalidAction.selector);
@@ -405,7 +407,7 @@ contract DepthsTest is DepthsBase {
         _roll(2);
         _forceEncounter(alice, Encounter.TREASURE);
         vm.expectEmit(address(d));
-        emit FloorResolved(alice, 1, 1, Action.LEAVE, bytes32(0), true, 100, 0, uint8(Outcome.LEAVE));
+        emit FloorResolved(alice, 1, 1, Action.LEAVE, bytes32(0), true, DepthsLogic.BASE_HP, 0, uint8(Outcome.LEAVE));
         vm.prank(aliceOp);
         d.act(Action.LEAVE, 0, 0, 0, false);
         assertEq(uint8(_state(alice)), uint8(RunState.FLOOR_CLEARED));
@@ -459,15 +461,18 @@ contract DepthsTest is DepthsBase {
 
     function test_buy_insufficientBag() public {
         _enter(alice, aliceOp);
+        _lootUntil(alice, aliceOp, DepthsLogic.POTION_PRICE);
+        assertLt(_run(alice).bag, 4600 * MMON, "bag di bawah harga borong");
         _roll(2);
         _forceEncounter(alice, Encounter.MERCHANT);
         vm.expectRevert(InsufficientBag.selector);
         vm.prank(aliceOp);
-        d.act(Action.BUY, 0, 0, 1, false);
+        d.act(Action.BUY, 5, 5, 3, false);
     }
 
     function test_buy_itemLimit() public {
         _enter(alice, aliceOp);
+        _lootUntil(alice, aliceOp, DepthsLogic.POTION_PRICE);
         _roll(2);
         _forceEncounter(alice, Encounter.MERCHANT);
         vm.startPrank(aliceOp);
@@ -497,6 +502,7 @@ contract DepthsTest is DepthsBase {
 
     function test_buy_zeroItemsActsAsLeave() public {
         _enter(alice, aliceOp);
+        _lootUntil(alice, aliceOp, DepthsLogic.POTION_PRICE);
         _roll(2);
         _forceEncounter(alice, Encounter.MERCHANT);
         vm.prank(aliceOp);
@@ -516,12 +522,12 @@ contract DepthsTest is DepthsBase {
         d.act(Action.BUY, 0, 0, 1, false);
         _descend(aliceOp);
         uint16 hp0 = _run(alice).hp;
-        assertLt(hp0, 100);
+        assertLt(hp0, DepthsLogic.BASE_HP);
 
         _act(aliceOp, alice, Encounter.TREASURE, Action.OPEN, true);
         _roll(2);
         Resolution memory res = _forceOutcome(alice, Outcome.TREASURE);
-        uint16 healed = hp0 + 50 > 100 ? 100 : hp0 + 50;
+        uint16 healed = hp0 + 50 > DepthsLogic.BASE_HP ? DepthsLogic.BASE_HP : hp0 + 50;
         assertEq(res.hpAfter, healed, "preview sudah termasuk potion");
         _descend(aliceOp);
         Run memory r = _run(alice);
@@ -561,7 +567,7 @@ contract DepthsTest is DepthsBase {
         d.settle(alice);
         Run memory r = _run(alice);
         assertEq(r.state, uint8(RunState.FLOOR_CLEARED));
-        assertEq(r.hp, 100);
+        assertEq(r.hp, DepthsLogic.BASE_HP);
         assertEq(r.bag, 0);
     }
 
@@ -606,7 +612,7 @@ contract DepthsTest is DepthsBase {
         _commit(aliceOp, alice, Encounter.TRAP, Action.PROCEED, Outcome.TRAP_HP);
         vm.prank(stranger);
         d.settle(alice);
-        assertEq(_run(alice).hp, 100 - 13);
+        assertEq(_run(alice).hp, DepthsLogic.BASE_HP - 13);
     }
 
     function test_settle_trapLoot_bagToPool() public {
@@ -616,7 +622,7 @@ contract DepthsTest is DepthsBase {
         uint128 pool0 = d.pool();
         _commit(aliceOp, alice, Encounter.TRAP, Action.PROCEED, Outcome.TRAP_LOOT);
         vm.expectEmit(address(d));
-        emit FloorResolved(alice, 1, 2, Action.PROCEED, _resolveSeed(alice), true, 100, -int128(bag0 / 5), 7);
+        emit FloorResolved(alice, 1, 2, Action.PROCEED, _resolveSeed(alice), true, DepthsLogic.BASE_HP, -int128(bag0 / 5), 7);
         vm.prank(stranger);
         d.settle(alice);
         assertEq(_run(alice).bag, bag0 - bag0 / 5);
@@ -638,16 +644,16 @@ contract DepthsTest is DepthsBase {
         _commit(aliceOp, alice, Encounter.TRAP, Action.DISARM, Outcome.DISARM_FAIL);
         vm.prank(stranger);
         d.settle(alice);
-        assertEq(_run(alice).hp, 100 - 26);
+        assertEq(_run(alice).hp, DepthsLogic.BASE_HP - 26);
     }
 
     function test_settle_disarmFail_fatal_causeTrap() public {
         _enter(alice, aliceOp);
-        // floor 15: kerugian 2 × (10 + 45) = 110 > 100 HP
-        _reachFloor(alice, aliceOp, 15);
+        // floor 19: kerugian 2 × (10 + 57) = 134 > 130 HP (BASE_HP)
+        _reachFloor(alice, aliceOp, 19);
         _commit(aliceOp, alice, Encounter.TRAP, Action.DISARM, Outcome.DISARM_FAIL);
         vm.expectEmit(address(d));
-        emit RunDied(alice, 1, 15, 0, uint8(DeathCause.TRAP));
+        emit RunDied(alice, 1, 19, 0, uint8(DeathCause.TRAP));
         vm.prank(stranger);
         d.settle(alice);
         assertEq(uint8(_state(alice)), uint8(RunState.NONE));
@@ -779,7 +785,7 @@ contract DepthsTest is DepthsBase {
     function test_floor20_descendReverts() public {
         _enter(alice, aliceOp);
         _reachFloor(alice, aliceOp, 20);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         vm.expectRevert(MaxFloorReached.selector);
         _descend(aliceOp);
         // BUY/LEAVE di floor 20 → FLOOR_CLEARED, lalu cash out manual
@@ -863,7 +869,7 @@ contract DepthsTest is DepthsBase {
 
     function test_cashOut_emptyBag() public {
         _enter(alice, aliceOp);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(aliceOp);
         assertEq(uint8(_state(alice)), uint8(RunState.NONE));
         (BoardEntry[10] memory cash, BoardEntry[10] memory depth) = d.getBoards();
@@ -931,8 +937,8 @@ contract DepthsTest is DepthsBase {
         Run memory r = _run(alice);
         assertEq(r.runId, 2);
         assertEq(r.floor, 1);
-        assertEq(r.hp, 100);
-        assertEq(r.maxHp, 100);
+        assertEq(r.hp, DepthsLogic.BASE_HP);
+        assertEq(r.maxHp, DepthsLogic.BASE_HP);
         assertEq(r.atk, 12);
         assertEq(r.swords + r.shields + r.potions, 0);
         assertEq(r.bag, 0);
@@ -947,7 +953,7 @@ contract DepthsTest is DepthsBase {
 
     function test_staleOperator_cannotControlNextRun() public {
         _enter(alice, aliceOp);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(aliceOp);
         assertEq(d.operatorOf(aliceOp), address(0));
         assertEq(d.ownerOf(aliceOp), address(0));
@@ -960,7 +966,7 @@ contract DepthsTest is DepthsBase {
         d.act(Action.FIGHT, 0, 0, 0, false);
 
         // run baru dengan operator lain: operator lama tetap tidak berlaku
-        _act(alice, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(alice, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(alice);
         address op2 = makeAddr("op2");
         _enter(alice, op2);
@@ -970,7 +976,7 @@ contract DepthsTest is DepthsBase {
 
     function test_staleOperator_reusableByOthers() public {
         _enter(alice, aliceOp);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(aliceOp);
         // operator basi milik alice bisa dipakai bob, dan bisa memulai run sendiri
         _enter(bob, aliceOp);
@@ -982,7 +988,7 @@ contract DepthsTest is DepthsBase {
 
     function test_staleOperator_canStartOwnRun() public {
         _enter(alice, aliceOp);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(aliceOp);
         vm.deal(aliceOp, 10 ether);
         _enter(aliceOp, address(0));
@@ -993,7 +999,7 @@ contract DepthsTest is DepthsBase {
         vm.prank(alice);
         d.enterDungeon{value: FEE + TOPUP}(alice);
         assertEq(d.ownerOf(alice), alice);
-        _act(alice, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(alice, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(alice);
         _enter(alice, address(0));
     }
@@ -1086,7 +1092,7 @@ contract DepthsTest is DepthsBase {
 
     function test_reapExpired_wrongState() public {
         _enter(alice, aliceOp);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _roll(1000);
         vm.expectRevert(abi.encodeWithSelector(WrongState.selector, RunState.AWAIT_REVEAL, RunState.FLOOR_CLEARED));
         d.reapExpired(alice);
@@ -1340,7 +1346,7 @@ contract DepthsTest is DepthsBase {
             vm.deal(players[k], 10 ether);
             _enter(players[k], address(0));
             _lootFloors(players[k], players[k], lootFloors[k]);
-            _act(players[k], players[k], Encounter.MERCHANT, Action.LEAVE, false);
+            _act(players[k], players[k], Encounter.TREASURE, Action.LEAVE, false);
             _cashOut(players[k]);
         }
         (BoardEntry[10] memory cash, BoardEntry[10] memory depth) = d.getBoards();

@@ -68,12 +68,16 @@ contract GenVectors is Test {
         for (uint256 k; k < 100; ++k) {
             bytes32 seed = _seed("encounter", k);
             uint8 floor = uint8(1 + _x("encounter", k) % 20);
-            (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, floor);
+            // bag di sekitar ambang merchant (harga potion) supaya kedua cabang ikut teruji
+            uint128 bag = uint128([0, DepthsLogic.POTION_PRICE - 1, DepthsLogic.POTION_PRICE, 1 ether][k % 4]);
+            (Encounter enc, uint8 monsterId) = DepthsLogic.rollEncounter(seed, floor, bag);
             cases[k] = string.concat(
                 '{"seed":"',
                 vm.toString(seed),
                 '","floor":',
                 vm.toString(floor),
+                ',"bag":',
+                _q(bag),
                 ',"enc":',
                 vm.toString(uint8(enc)),
                 ',"monsterId":',

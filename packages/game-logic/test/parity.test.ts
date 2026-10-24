@@ -39,7 +39,7 @@ function expectResolution(actual: Resolution, expected: ResolutionJson) {
 
 const encounter = vectors<{
   rand: { seed: Hex; i: number; value: string }[];
-  cases: { seed: Hex; floor: number; enc: number; monsterId: number }[];
+  cases: { seed: Hex; floor: number; bag: string; enc: number; monsterId: number }[];
 }>('encounter');
 
 const combat = vectors<{
@@ -81,7 +81,7 @@ describe('parity dengan DepthsLogic.sol', () => {
   });
 
   it.each(encounter.cases)('rollEncounter floor $floor', (v) => {
-    expect(rollEncounter(seedDraw(v.seed), v.floor)).toEqual({ enc: v.enc, monsterId: v.monsterId });
+    expect(rollEncounter(seedDraw(v.seed), v.floor, BigInt(v.bag))).toEqual({ enc: v.enc, monsterId: v.monsterId });
   });
 
   it.each(combat.combat)('resolveCombat hp=$playerHp atk=$playerAtk vs $monsterHp/$monsterAtk', (v) => {

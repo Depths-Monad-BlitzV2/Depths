@@ -34,7 +34,7 @@ contract DepthsGasTest is DepthsBase {
         bytes memory data = abi.encodeCall(d.enterDungeon, (aliceOp));
         _enter(alice, aliceOp);
         uint256 first = _report("enterDungeon (player baru, operator baru)", data);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _cashOut(aliceOp);
         _enter(alice, aliceOp);
         _report("enterDungeon (player lama)", data);
@@ -56,7 +56,7 @@ contract DepthsGasTest is DepthsBase {
     function test_gas_actInstant() public {
         _enter(alice, aliceOp);
         _lootFloors(alice, aliceOp, 4);
-        _act(aliceOp, alice, Encounter.MERCHANT, Action.LEAVE, false);
+        _act(aliceOp, alice, Encounter.TREASURE, Action.LEAVE, false);
         _report("act LEAVE di AWAIT_REVEAL", _actData(Action.LEAVE, 0, 0, 0, false));
         _descend(aliceOp);
         _roll(2);
@@ -135,7 +135,7 @@ contract DepthsGasTest is DepthsBase {
             vm.deal(p, 10 ether);
             _enter(p, address(0));
             _lootFloors(p, p, 3);
-            _act(p, p, Encounter.MERCHANT, Action.LEAVE, false);
+            _act(p, p, Encounter.TREASURE, Action.LEAVE, false);
             _cashOut(p);
         }
         _enter(alice, aliceOp);
