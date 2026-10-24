@@ -68,13 +68,15 @@ _Status 2026-10-23:_ 130 test forge + 550 parity TS hijau. Coverage `Depths.sol`
 
 ## Phase 3 — Deploy testnet + keeper (Hari 5 pagi)
 
-- [ ] 🔴 `script/Deploy.s.sol`: deploy, seed pool (target ≥ 80 MON testnet, lihat Phase 7), log address dan block
-- [ ] 🔴 Deploy ke Monad testnet, verifikasi source di explorer (Sourcify / explorer verifier, lihat docs.monad.xyz)
-- [ ] 🔴 Script `pnpm abi:sync`: salin `contracts/out/Depths.sol/Depths.json` (ABI saja) ke `apps/web/abi/` dan `apps/keeper/abi/`
-- [ ] 🔴 Smoke test manual dengan `cast`: enter → act → descend → act → cashOut, plus jalur fallback reveal/settle
-- [ ] 🟡 `apps/keeper`: polling event `FloorEntered` / `ActionCommitted`. Kalau belum ada `EncounterRevealed` / `FloorResolved` setelah 200 blok, kirim `reveal` / `settle` (gas worst case). Juga `reapExpired`
+- [x] 🔴 `script/Deploy.s.sol`: deploy, seed pool (target ≥ 80 MON testnet, lihat Phase 7), log address dan block _(hanya chain 10143/31337; hasil ke `contracts/deployments/<chainId>.json`)_
+- [x] 🔴 Deploy ke Monad testnet, verifikasi source di explorer (Sourcify / explorer verifier, lihat docs.monad.xyz) _(`0x0970…65AC`, blok 73431066, seed 80 MON; Sourcify MonadVision: creation + runtime `match`)_
+- [x] 🔴 Script `pnpm abi:sync`: salin `contracts/out/Depths.sol/Depths.json` (ABI saja) ke `apps/web/abi/` dan `apps/keeper/abi/` _(sudah ada sejak Phase 0)_
+- [x] 🔴 Smoke test manual dengan `cast`: enter → act → descend → act → cashOut, plus jalur fallback reveal/settle _(`scripts/smoke.sh`, lolos di anvil dan testnet)_
+- [x] 🟡 `apps/keeper`: polling event `FloorEntered` / `ActionCommitted`. Kalau belum ada `EncounterRevealed` / `FloorResolved` setelah 200 blok, kirim `reveal` / `settle` (gas worst case). Juga `reapExpired` _(gas = estimate + 30%, dibatasi worst case; reveal + settle teruji di testnet, reap di anvil)_
 
 **DoD:** satu run penuh sukses di testnet lewat CLI. Address ada di `apps/web/.env.local` dan README.
+
+_Status 2026-10-23:_ DoD terpenuhi. Smoke test testnet: run 1 (jalur normal, floor 1 merchant → floor 2 FIGHT WIN → cashOut 0.3 MON ke owner), run 2 (reveal → act → settle fallback → cashOut 0.2 MON), plus run yang ditinggal dan di-relay keeper (reveal 207 blok setelah target, lalu settle). Solvency on-chain setelahnya: saldo 83.3 MON = pool 83.1 + reserved 0 + treasury 0.2. Gas estimate testnet selisih ≤ 1.5% dari simulasi (CONTRACT_SPEC §8). Address di `apps/web/.env.local`, `apps/web/.env.example`, dan README.
 
 ---
 

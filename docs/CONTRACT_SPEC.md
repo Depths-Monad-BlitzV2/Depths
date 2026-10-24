@@ -221,6 +221,24 @@ Sumber: `test/DepthsGas.t.sol`, dijalankan dengan `forge test --match-contract D
 | reveal / settle TREASURE (fallback) | ≤ 50k / ≤ 40k + resolusi | **39k** ✅ / 59k | 40k / 52k | settle = 43k + award 16k |
 | reapExpired (board penuh / board baru) | – | 58k / 98k | 48k / 96k | |
 
+**Kalibrasi testnet (Phase 3, 2026-10-23).** `eth_estimateGas` di Monad testnet saat smoke test (`scripts/smoke.sh`) dan uji keeper, dibandingkan dengan simulasi `--network monad` di atas:
+
+| Jalur (testnet) | `cast estimate` | Simulasi | Selisih |
+|---|---|---|---|
+| enterDungeon (player + burner baru) | 204,931 | 202,591 | +1.2% |
+| enterDungeon (player lama, burner sama) | 108,630 | 107,049 | +1.5% |
+| enterDungeon (player lama, burner baru) | 153,526 | – | akun burner baru (+25k) dan slot operator baru |
+| act FIGHT di AWAIT_REVEAL (floor 2) | 52,947 | 52,873 | +0.1% |
+| act LEAVE di AWAIT_REVEAL (floor 1, run pertama) | 72,648 | – | LEAVE + slot `encounterSeed` baru |
+| act FIGHT / LEAVE di AWAIT_ACTION | 46,802 / 47,668 | 47,185 (OPEN) | ±1% |
+| descend di FLOOR_CLEARED | 45,084 | 44,769 | +0.7% |
+| reveal (fallback, juga dari keeper) | 39,033–39,075 | 39,124 | −0.2% |
+| settle FIGHT WIN (fallback, juga dari keeper) | 62,534 | – | |
+| cashOut di AWAIT_SETTLE (WIN, masuk 2 board) | 176,654 | 175,191 | +0.8% |
+| cashOut di FLOOR_CLEARED (bag 0 / bag > 0, masuk board) | 103,689 / 152,955–163,047 | – | biaya board bergantung posisi |
+
+Kesimpulan: `forge test --isolate --network monad` akurat untuk menyusun `base[jalur]` di `lib/gas.ts`, dengan margin 20% sudah lebih dari cukup. Setiap estimate di atas lolos dengan limit = estimate × 1.2 (semua tx status 1).
+
 Panduan `lib/gas.ts`:
 - `act`, `descend`, `reveal`, `settle`: `base[jalur] + serangan × 260 + margin 20%`, dengan `serangan` dari `replayCombat` (jumlah draw combat).
 - `cashOut`: biaya board bergantung posisi insert, jadi pakai `eth_estimateGas` (hasil sudah deterministik sebelum tx dikirim) + margin, atau batas atas 350k.
