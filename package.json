@@ -7,6 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "node scripts/dev.mjs testnet",
+    "dev:local": "node scripts/dev.mjs local",
+    "check": "node scripts/dev.mjs check",
     "abi:sync": "node scripts/abi-sync.mjs",
     "spike:rng": "node scripts/spike-rng.mjs"
   },

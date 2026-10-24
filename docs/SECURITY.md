@@ -64,11 +64,13 @@ Contract ini memegang uang player. Setiap PR yang menyentuh `contracts/src` haru
 
 ## 7. Checklist sebelum deploy
 
-- [ ] `forge test` hijau, termasuk invariant (≥ 256 runs × depth 100)
-- [ ] `forge coverage` ≥ 90% line untuk `src/`
-- [ ] Slither tanpa temuan high/medium yang belum dijelaskan
-- [ ] Parity test TS ↔ Solidity hijau
-- [ ] Gas limit frontend sudah di-update dari gas report
-- [ ] Deployer key tidak ada di repo (`git grep -i "PRIVATE_KEY=0x"` kosong)
-- [ ] Ownership ditransfer ke wallet tim (bukan hot key deployer), kalau relevan
-- [ ] Hanya testnet. Mainnet membutuhkan audit + kajian legal
+_Diverifikasi ulang 2026-10-23 (Phase 6) pada kode yang ter-deploy di `0x0970…65AC` (tidak ada perubahan `contracts/src` sejak deploy; Sourcify `match`)._
+
+- [x] `forge test` hijau, termasuk invariant (≥ 256 runs × depth 100) _(130 test, invariant 256 × 100)_
+- [x] `forge coverage` ≥ 90% line untuk `src/` _(Depths 99.7%, DepthsLogic 100%, total 96.1%)_
+- [x] Slither tanpa temuan high/medium yang belum dijelaskan _(0 temuan)_
+- [x] Parity test TS ↔ Solidity hijau _(550 vector)_
+- [x] Gas limit frontend sudah di-update dari gas report _(`apps/web/lib/gas.ts`, kalibrasi testnet ≤ 1.5%)_
+- [x] Deployer key tidak ada di repo (`git grep -i "PRIVATE_KEY=0x"` kosong) _(hanya key default anvil yang publik di README; `.env`, `.env.local`, `.playtest/` gitignored)_
+- [x] Ownership ditransfer ke wallet tim (bukan hot key deployer), kalau relevan _(tidak relevan untuk testnet, keputusan product owner 2026-10-23: owner tetap deployer; owner hanya bisa pause, ubah fee, tarik treasury)_
+- [x] Hanya testnet. Mainnet membutuhkan audit + kajian legal _(`Deploy.s.sol` menolak chain selain 10143/31337)_

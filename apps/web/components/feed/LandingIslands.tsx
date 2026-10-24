@@ -23,9 +23,12 @@ export const FeeIsland = dynamic(() => import('./LandingLive').then((m) => m.Fee
 export const FeedIsland = dynamic(() => import('./LandingLive').then((m) => m.FeedAndStats), {
   ssr: false,
   loading: () => (
-    <div className="rounded border border-line bg-panel p-3 md:col-start-2 md:row-start-1">
-      <div className="pixel mb-2 text-xs text-teal">LIVE FEED</div>
-      <p className="h-64 text-xs text-foreground/70">Mendengarkan dungeon…</p>
+    <div className="stone p-3 md:col-start-2 md:row-start-1">
+      <div className="pixel mb-3 flex items-center gap-2 text-xs text-teal">
+        <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+        KABAR DARI BAWAH
+      </div>
+      <p className="h-[22rem] text-xs text-foreground/70">Mendengarkan dungeon…</p>
     </div>
   ),
 });

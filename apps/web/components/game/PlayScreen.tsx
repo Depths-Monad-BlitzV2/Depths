@@ -58,15 +58,15 @@ export function PlayScreen() {
   // ---------------------------------------------------------------- timeline resolusi lantai ini
   // Scene menempel pada run/ruangan tempat ia dimulai sampai selesai diputar: settle kematian bisa
   // masuk chain (fase → noRun) sebelum animasi selesai, dan animasinya tidak boleh terpotong.
+  // Di-derive saat render (bukan useEffect): kalau tidak, ada satu frame mode 'decision' sebelum battle
+  // diputar, dan di frame itu monster disembunyikan dan HP langsung lompat ke hasil akhir.
   const resolving = phase.kind === 'resolved' || phase.kind === 'dying';
   const battleKey = resolving && run ? `${run.runId}:${run.floor}:${run.targetBlock}` : null;
   const [scene, setScene] = useState<{ key: string; events: SceneEvent[]; run: OnchainRun } | null>(null);
-  useEffect(() => {
-    if (!battleKey || !run || (phase.kind !== 'resolved' && phase.kind !== 'dying')) return;
-    if (scene?.key === battleKey) return;
+  if (battleKey && run && (phase.kind === 'resolved' || phase.kind === 'dying') && scene?.key !== battleKey) {
     const award = phase.kind === 'resolved' ? phase.award : 0n;
     setScene({ key: battleKey, run, events: buildScene({ run, resolution: phase.resolution, replay: phase.replay, award }) });
-  }, [battleKey, run, phase, scene?.key]);
+  }
   const timeline = useBattleTimeline(scene?.events.length ? scene.key : null, scene?.events ?? NO_EVENTS, reduced);
   const playing = !!scene && scene.events.length > 0 && !timeline.done;
   const current = scene && (scene.key === battleKey || playing) ? scene : null;
@@ -173,149 +173,155 @@ export function PlayScreen() {
   const slow = !!snapshot && !!pending && phase.kind !== 'expired' && snapshot.block > run.targetBlock + SLOW_WARN_BLOCKS;
   const decisionOpen = mode === 'decision' && run && (phase.kind === 'resolved' || phase.kind === 'cleared');
 
+  const showSide = isConnected && !game.wrongChain;
+
+  // Satu layar penuh tanpa scroll halaman: scene mengisi sisa tinggi, dialog muncul di atas scene,
+  // hanya log (dan panel samping di layar pendek) yang menggulir di dalam dirinya sendiri.
   return (
-    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-3 p-3 sm:p-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="pixel text-2xl tracking-[0.3em]">DEPTHS</h1>
+    <main className="mx-auto flex h-dvh max-w-[1600px] flex-col gap-2 overflow-hidden p-2 sm:p-3">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <h1 className="pixel text-xl tracking-[0.3em]">DEPTHS</h1>
         <DepthMeter floor={run?.floor ?? 0} best={best} />
         <PoolBadge pool={pool} />
         <ConnectButton chainStatus="icon" showBalance={false} />
       </header>
 
       {error && <Toast text={error} />}
-      {slow && (
-        <div className="flex items-center justify-between gap-2 rounded border border-danger bg-red-950 p-2 text-sm">
-          <span>Koneksi lambat — selesaikan langkah ini atau run hangus.</span>
-          <button className="rounded bg-danger px-2 py-0.5" onClick={() => game.machine?.refresh()}>
-            Coba lagi
-          </button>
-        </div>
-      )}
 
-      <DungeonScene
-        floor={floor}
-        roomKey={roomKey}
-        encounter={encounter}
-        monsterId={monsterId}
-        mode={mode}
-        events={events}
-        timeline={timeline}
-        swords={roomRun?.swords ?? 0}
-        reducedMotion={reduced}
-        caption={caption}
+      <div
+        className={`grid min-h-0 flex-1 gap-2 ${
+          showSide ? 'grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_17rem] md:grid-rows-1' : ''
+        }`}
       >
-        {!isConnected && (
-          <Center>
-            <p className="pixel mb-3 text-lg">Bayar masuk. Makin dalam, makin kaya.</p>
-            <ConnectButton />
-          </Center>
-        )}
-        {isConnected && game.wrongChain && (
-          <Center>
-            <WrongChain />
-          </Center>
-        )}
-        {isConnected && !game.wrongChain && !playing && phase.kind === 'noRun' && snapshot && !ended && (
-          <Center>
-            <EnterPanel game={game} />
-          </Center>
-        )}
-        {!playing && phase.kind === 'noRun' && ended?.kind === 'cashOut' && (
-          <CashOutScreen floor={ended.floor} amount={ended.amount} onAgain={() => gameStore.getState().setEnded(null)} />
-        )}
-        {!playing && phase.kind === 'noRun' && ended && ended.kind !== 'cashOut' && (
-          <DeathScreen
-            floor={ended.floor}
-            lost={ended.amount}
-            cause={ended.kind === 'expired' ? 'expired' : 'killed'}
-            onRetry={() => gameStore.getState().setEnded(null)}
-          />
-        )}
-        {phase.kind === 'dying' && timeline.done && run && <DeathScreen floor={run.floor} lost={run.bag} cause="killed" pending />}
-        {phase.kind === 'expired' && run && (
-          <DeathScreen floor={run.floor} lost={run.bag} cause="expired" onReap={() => decide('reap')} busy={busy === 'reap'} />
-        )}
-        {decisionOpen && run && pool !== null && (
-          <DecisionModal
-            floor={run.floor}
-            bag={shown.bag}
-            hp={shown.hp}
-            maxHp={run.maxHp}
-            pool={pool}
-            outcome={outcomeText}
-            busy={busy === 'cash' ? 'cash' : busy === 'deeper' ? 'deeper' : null}
+        <div className={`relative w-full ${showSide ? 'aspect-video md:aspect-auto md:h-full' : 'h-full'}`}>
+          {slow && (
+            <div className="absolute inset-x-2 top-2 z-30 flex items-center justify-between gap-2 rounded border border-danger bg-red-950/95 p-2 text-sm">
+              <span>Koneksi lambat — selesaikan langkah ini atau run hangus.</span>
+              <button className="rounded bg-danger px-2 py-0.5" onClick={() => game.machine?.refresh()}>
+                Coba lagi
+              </button>
+            </div>
+          )}
+          <DungeonScene
+            floor={floor}
+            roomKey={roomKey}
+            encounter={encounter}
+            monsterId={monsterId}
+            mode={mode}
+            events={events}
+            timeline={timeline}
+            swords={roomRun?.swords ?? 0}
             reducedMotion={reduced}
-            onCashOut={() => decide('cash')}
-            onDeeper={() => decide('deeper')}
-          />
-        )}
-        {mode === 'battle' && (
-          <button
-            className="pixel absolute bottom-2 right-2 z-10 rounded bg-black/60 px-2 py-1 text-xs hover:bg-black/80"
-            onClick={timeline.skip}
+            caption={caption}
           >
-            SKIP [Space]
-          </button>
-        )}
-      </DungeonScene>
-
-      {isConnected && !game.wrongChain && (
-        <div className="grid gap-3 md:grid-cols-[1fr_17rem]">
-          <section className="min-h-28 rounded border border-line bg-panel p-3">
-            {phase.kind === 'encounter' && run && pool !== null ? (
-              <EncounterCard
-                key={roomKey}
-                run={run}
-                encounter={phase.encounter}
-                monsterId={phase.monsterId}
-                pool={pool}
-                busy={busy !== null || committing}
-                onAct={act}
-              />
-            ) : (
-              <StatusLine mode={mode} />
+            {!isConnected && (
+              <Center>
+                <p className="pixel mb-3 text-lg">Bayar masuk. Makin dalam, makin kaya.</p>
+                <ConnectButton />
+              </Center>
             )}
-          </section>
-          <aside className="space-y-3 rounded border border-line bg-panel p-3">
-            {run && run.state !== RunState.NONE ? (
-              <StatsHud
+            {isConnected && game.wrongChain && (
+              <Center>
+                <WrongChain />
+              </Center>
+            )}
+            {isConnected && !game.wrongChain && !playing && phase.kind === 'noRun' && snapshot && !ended && (
+              <Center>
+                <EnterPanel game={game} />
+              </Center>
+            )}
+            {!playing && phase.kind === 'noRun' && ended?.kind === 'cashOut' && (
+              <CashOutScreen floor={ended.floor} amount={ended.amount} onAgain={() => gameStore.getState().setEnded(null)} />
+            )}
+            {!playing && phase.kind === 'noRun' && ended && ended.kind !== 'cashOut' && (
+              <DeathScreen
+                floor={ended.floor}
+                lost={ended.amount}
+                cause={ended.kind === 'expired' ? 'expired' : 'killed'}
+                onRetry={() => gameStore.getState().setEnded(null)}
+              />
+            )}
+            {phase.kind === 'dying' && timeline.done && run && <DeathScreen floor={run.floor} lost={run.bag} cause="killed" pending />}
+            {phase.kind === 'expired' && run && (
+              <DeathScreen floor={run.floor} lost={run.bag} cause="expired" onReap={() => decide('reap')} busy={busy === 'reap'} />
+            )}
+            {decisionOpen && run && pool !== null && (
+              <DecisionModal
+                floor={run.floor}
+                bag={shown.bag}
                 hp={shown.hp}
                 maxHp={run.maxHp}
-                atk={run.atk}
-                potions={run.potions}
-                swords={run.swords}
-                shields={run.shields}
-                bag={shown.bag}
+                pool={pool}
+                outcome={outcomeText}
+                busy={busy === 'cash' ? 'cash' : busy === 'deeper' ? 'deeper' : null}
+                reducedMotion={reduced}
+                onCashOut={() => decide('cash')}
+                onDeeper={() => decide('deeper')}
               />
-            ) : (
-              <p className="text-sm opacity-60">Belum ada run aktif.</p>
             )}
-            <SessionPanel game={game} balance={balance} runActive={!!run && run.state !== RunState.NONE} />
-          </aside>
-          <section className="rounded border border-line bg-panel p-3 md:col-span-2">
-            <CombatLog log={log} live={live} />
-          </section>
+            {/* dialog aksi encounter, popup di atas scene. Disembunyikan (bukan unmount) selama aksi dikirim
+                supaya stance terlihat dan pilihan potion/belanja tidak hilang kalau tx gagal. */}
+            {showSide && phase.kind === 'encounter' && run && pool !== null && (
+              <div
+                className={`fixed inset-x-2 bottom-2 z-30 mx-auto max-h-[60dvh] max-w-xl overflow-y-auto rounded-lg border-2 border-line bg-panel/95 p-3 shadow-2xl md:absolute md:bottom-auto md:top-2 md:z-20 md:max-h-[calc(100%-1rem)] ${
+                  committing ? 'hidden' : ''
+                }`}
+                role="dialog"
+                aria-label="Pilih aksi"
+                style={{ animation: reduced ? undefined : 'fade-in 250ms ease-out' }}
+              >
+                <EncounterCard
+                  key={roomKey}
+                  run={run}
+                  encounter={phase.encounter}
+                  monsterId={phase.monsterId}
+                  pool={pool}
+                  busy={busy !== null || committing}
+                  onAct={act}
+                />
+              </div>
+            )}
+            {mode === 'battle' && (
+              <button
+                className="pixel absolute bottom-2 right-2 z-10 rounded bg-black/60 px-2 py-1 text-xs hover:bg-black/80"
+                onClick={timeline.skip}
+              >
+                SKIP [Space]
+              </button>
+            )}
+          </DungeonScene>
         </div>
-      )}
 
-      <footer className="rounded border border-line bg-panel p-2">
+        {showSide && (
+          <aside className="flex min-h-0 flex-col gap-2 overflow-y-auto md:overflow-hidden">
+            <section className="shrink-0 space-y-3 rounded border border-line bg-panel p-3">
+              {run && run.state !== RunState.NONE ? (
+                <StatsHud
+                  hp={shown.hp}
+                  maxHp={run.maxHp}
+                  atk={run.atk}
+                  potions={run.potions}
+                  swords={run.swords}
+                  shields={run.shields}
+                  bag={shown.bag}
+                />
+              ) : (
+                <p className="text-sm opacity-60">Belum ada run aktif.</p>
+              )}
+              <SessionPanel game={game} balance={balance} runActive={!!run && run.state !== RunState.NONE} />
+            </section>
+            <section className="flex min-h-28 flex-1 flex-col rounded border border-line bg-panel p-3">
+              <CombatLog log={log} live={live} />
+            </section>
+          </aside>
+        )}
+      </div>
+
+      <footer className="shrink-0 rounded border border-line bg-panel p-2">
         <TxTicker txs={txs} />
       </footer>
     </main>
   );
-}
-
-function StatusLine({ mode }: { mode: SceneMode }) {
-  const text: Partial<Record<SceneMode, string>> = {
-    fog: 'Kamu menuruni tangga. Sesuatu menunggu di bawah…',
-    stance: 'Langkahmu terkunci di chain. Menunggu takdir dari blok berikutnya…',
-    battle: 'Pertarungan berlangsung. Tekan Space untuk melewati.',
-    decision: 'Lantai clear. Cash out, atau turun lebih dalam?',
-    dead: 'Gelap.',
-    expired: 'Run ini hangus.',
-    empty: 'Pintu dungeon terbuka.',
-  };
-  return <p className="text-sm italic opacity-70">{text[mode] ?? ''}</p>;
 }
 
 function Center({ children }: { children: React.ReactNode }) {

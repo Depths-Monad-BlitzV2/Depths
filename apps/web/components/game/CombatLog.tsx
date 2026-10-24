@@ -8,12 +8,14 @@ import type { LogLine } from '@/store/game';
  * (UI_UX §2.1); setelah timeline selesai baris itu dipindah ke log permanen di store.
  */
 export function CombatLog({ log, live }: { log: LogLine[]; live: string[] }) {
-  const end = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  // gulir container log saja: scrollIntoView ikut menggulir halaman dan mendorong scene keluar layar
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'nearest' });
+    const el = box.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [log.length, live.length]);
   return (
-    <div className="h-40 overflow-y-auto font-mono text-xs leading-relaxed" aria-live="polite">
+    <div ref={box} className="h-full min-h-0 overflow-y-auto font-mono text-xs leading-relaxed" aria-live="polite">
       {log.length === 0 && live.length === 0 && <p className="opacity-40">&gt; Obor dinyalakan…</p>}
       {log.map((l) => (
         <p key={l.id} className={l.tone === 'good' ? 'text-emerald-300' : l.tone === 'bad' ? 'text-red-400' : ''}>
@@ -25,7 +27,6 @@ export function CombatLog({ log, live }: { log: LogLine[]; live: string[] }) {
           &gt; {t}
         </p>
       ))}
-      <div ref={end} />
     </div>
   );
 }

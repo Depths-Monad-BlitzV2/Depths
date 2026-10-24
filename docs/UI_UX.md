@@ -31,7 +31,7 @@ Combat di contract tetap **auto-resolve** dalam satu resolusi `_settle` (GAME_DE
 ```
 
 - **Rendering:** React + DOM, sprite sheet via CSS (`background-position` + `steps()`), `image-rendering: pixelated`. Tanpa game engine. Scene cukup 2 aktor + beberapa efek, jadi Phaser/Pixi hanya menambah bundle dan menyulitkan sinkronisasi dengan state zustand.
-- **Resolusi:** canvas logis 320×180, di-scale dengan **kelipatan bulat** (×2/×3/×4) mengikuti lebar container. Jangan scale pecahan (pixel jadi blur/tidak rata). Di mobile pakai ×2 dan HUD pindah ke bawah scene.
+- **Resolusi:** canvas logis 320×180, di-scale dengan **kelipatan bulat** (×2/×3/×4) mengikuti lebar container. Jangan scale pecahan (pixel jadi blur/tidak rata). Di mobile HUD pindah ke bawah scene. Ponsel tegak (lebar < 640 px) memakai ×1 karena ×2 butuh 640 px; ×2 dipakai di landscape/tablet. Karena scene ×1 hanya setinggi 180 px, overlay (decision modal, layar mati/cash out, enter) tampil sebagai modal layar penuh di bawah breakpoint `md` (Phase 6).
 - **Layer (belakang → depan):** background tier → prop (obor, tangga, peti, lapak merchant) → aktor → efek (angka damage, partikel, flash) → vignette.
 - **Satu sumber timing:** scene memutar timeline. `CombatLog` dan HP bar di `StatsHud` mengikuti event timeline yang sama, bukan timer sendiri.
 

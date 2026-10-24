@@ -195,7 +195,7 @@ Alur satu lantai di frontend:
 4. Tombol "Withdraw session balance" mengirim sisa saldo burner ke owner.
 5. Top-up default **0.25 MON** (±14 lantai: gas report Phase 2 memberi ±152k gas ≈ 0.0155 MON per lantai di 102 gwei dengan margin 20%, lihat CONTRACT_SPEC §8 dan SPIKE_RESULTS). Kalau saldo burner di bawah biaya 2 lantai (±0.05 MON), tampilkan prompt top-up (popup main wallet).
 
-> Aturan *reserve balance* Monad untuk EOA bersaldo kecil belum diukur di spike Phase 0. Ukur di Phase 4 saat burner mendekati 0, lalu sesuaikan ambang.
+> *Reserve balance* Monad (diukur Phase 6, SPIKE_RESULTS): konsensus melihat saldo burner 3 blok lalu, dan RPC mengingat penolakan per hash. Dana top-up baru bisa dipakai ±3 blok kemudian; `txQueue` menunggu 4 blok lalu menandatangani ulang (hash baru) kalau tx ditolak "insufficient balance" padahal saldo terbaru cukup. Ambang saldo rendah (0.05 MON ≈ 2 lantai) tetap.
 
 ### 6.3 Recovery
 Saat load `/play`: `getRun(owner)` → map state ke UI:

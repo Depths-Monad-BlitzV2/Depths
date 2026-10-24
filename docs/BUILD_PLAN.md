@@ -124,11 +124,11 @@ _Status 2026-10-23:_ semua item 🔴 dan 🟡 selesai. `pnpm -F web test` (31), 
 
 ## Phase 6 — Hardening (Hari 9)
 
-- [ ] 🔴 Checklist SECURITY §7
-- [ ] 🔴 Uji edge case di testnet: refresh di tiap state, tutup tab > 2 menit (expiry), saldo burner habis, salah chain, RPC error
-- [ ] 🔴 Playtest 20+ run dengan beberapa orang. Catat RTP aktual dan feedback, lalu tuning `BASE_ATK` dkk. kalau perlu (redeploy)
-- [ ] 🟡 Lighthouse ≥ 90 performance di landing
-- [ ] 🟡 Mobile layout
+- [x] 🔴 Checklist SECURITY §7 _(diverifikasi ulang pada kode ter-deploy; owner tetap deployer, tidak relevan untuk testnet)_
+- [x] 🔴 Uji edge case di testnet: refresh di tiap state, tutup tab > 2 menit (expiry), saldo burner habis, salah chain, RPC error _(`pnpm -F web edge`: refresh/expiry/burner/rpc OK; salah chain di checklist manual docs/PLAYTEST.md §4; 1 bug P0 + 3 P1 ditemukan dan diperbaiki)_
+- [ ] 🔴 Playtest 20+ run dengan beberapa orang. Catat RTP aktual dan feedback, lalu tuning `BASE_ATK` dkk. kalau perlu (redeploy) _(bot: 23 run, 0 nyangkut, RTP 90.3%; tanpa tuning sesuai keputusan PO. Menunggu playtest manusia, docs/PLAYTEST.md)_
+- [x] 🟡 Lighthouse ≥ 90 performance di landing _(92–97; accessibility dan best practices 100)_
+- [x] 🟡 Mobile layout _(overlay modal layar penuh di ponsel, tanpa overflow horizontal di 390 px)_
 
 **DoD:** 0 bug P0 terbuka. 20 run playtest tanpa run "nyangkut".
 

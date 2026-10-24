@@ -72,9 +72,15 @@ Biaya gas run 10 lantai (~0.37 MON) **jauh di atas entry fee 0.05 MON saat spike
 - **Jadwal gas Monad berbeda dari Ethereum** ([docs.monad.xyz/developer-essentials/opcode-pricing](https://docs.monad.xyz/developer-essentials/opcode-pricing)): storage dihitung per page 128 slot (cold page 8.1k, page write pertama 2.8k, state growth 17k per slot baru), cold account 10.1k. Foundry 1.8 punya `--network monad` untuk mensimulasikannya. Gas per jalur di CONTRACT_SPEC §8 diukur dengan mode ini. Kalibrasi akhir tetap dengan `cast estimate` di testnet (Phase 3).
 - **Estimasi biaya baru (desain 2 tx, jadwal Monad, +20% margin, 102 gwei):** act ±64k + descend ±88k ≈ **152k gas per lantai ≈ 0.0155 MON**. Run 10 lantai ≈ 0.155 MON + cashOut ±0.013 MON dari burner. Top-up default 0.25 MON cukup untuk ±14 lantai. `enterDungeon` (107k–203k) dibayar main wallet.
 
-### Belum diukur
+### Temuan Phase 6 (2026-10-23): reserve balance dan penolakan tx
 
-- Aturan *reserve balance* Monad untuk EOA bersaldo kecil (burner tidak pernah mendekati 0 di spike ini).
+Diukur dengan `apps/web/scripts/edge.ts` (skenario `burner`) dan probe langsung ke RPC:
+
+- **Saldo yang dilihat konsensus tertunda k = 3 blok** ([docs.monad.xyz/developer-essentials/reserve-balance](https://docs.monad.xyz/developer-essentials/reserve-balance)). Dana yang baru masuk ke burner (top-up atau `enterDungeon`) belum terlihat ±3 blok (±1.2 detik). Tx di rentang itu ditolak RPC dengan `details` "Signer had insufficient balance" (`shortMessage` viem hanya "Missing or invalid parameters").
+- **RPC mengingat penolakan per hash tx.** Raw tx yang sama tetap ditolak walau saldo sudah terlihat (diuji sampai +89 blok). Ditandatangani ulang dengan priority fee +1 wei (hash baru) langsung diterima. Jadi retry harus menandatangani ulang, bukan mengirim ulang raw yang sama.
+- Burner dengan saldo 0.05–0.2 MON bisa mengirim tx normal setelah saldonya terlihat; tidak ada ambang minimum lain yang teramati. Budget gas inflight = min(10 MON, saldo tertunda), jadi untuk burner kecil budget = saldonya.
+- Penanganan di `apps/web/lib/txQueue.ts`: kalau ditolak "insufficient balance" padahal saldo terbaru cukup, tunggu 4 blok, tanda tangani ulang (+1 wei), kirim sekali lagi. Kalau saldo memang kurang, pesan ke pemain: "Saldo session wallet tidak cukup untuk gas. Klik Top-up…".
+- **Fallback RPC:** `fallback` viem secara default pindah ke RPC berikutnya juga untuk error semantik (mis. saldo kurang), sehingga alasan aslinya tertutup error RPC cadangan. `rpcShouldThrow` (`lib/chains.ts`) hanya mem-fallback error jaringan dan kapasitas (-32601, -32603, -32002, -32005). Keempat RPC publik (monad.xyz, monadinfra, ankr, drpc) mendukung `eth_sendRawTransaction`.
 
 ### Output runner (2026-10-22T01:45:58.702Z)
 

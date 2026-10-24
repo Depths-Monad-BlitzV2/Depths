@@ -8,9 +8,9 @@ import { SPRITES, TIER_THEMES, TILE_URL, monsterSprite, swordSprite, type Sprite
 import { SpriteActor } from './SpriteActor';
 import type { TimelineState } from './useBattleTimeline';
 
-// Battle scene side-view (UI_UX §2.1–2.4). Kanvas logis 320×180, di-scale integer (×1–×4) mengikuti
-// lebar container. Layer: background tier → prop → aktor → efek → vignette. Semua tile dan sprite ×2
-// supaya kerapatan pixel seragam.
+// Battle scene side-view (UI_UX §2.1–2.4). Kanvas logis 320×180, di-scale integer (×1–×6) supaya muat
+// di lebar dan tinggi container (scene mengisi parent, parent yang menentukan ukuran). Layer: background
+// tier → prop → aktor → efek → vignette. Semua tile dan sprite ×2 supaya kerapatan pixel seragam.
 
 export const SCENE_W = 320;
 export const SCENE_H = 180;
@@ -49,7 +49,7 @@ export interface DungeonSceneProps {
   children?: ReactNode;
 }
 
-/** Skala integer terbesar yang muat di container (min 1, maks 4). */
+/** Skala integer terbesar yang muat di lebar dan tinggi container (min 1, maks 6). */
 function useIntegerScale(): [React.RefObject<HTMLDivElement | null>, number] {
   const ref = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(2);
@@ -58,7 +58,8 @@ function useIntegerScale(): [React.RefObject<HTMLDivElement | null>, number] {
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const w = entry?.contentRect.width ?? SCENE_W * 2;
-      setK(Math.max(1, Math.min(4, Math.floor(w / SCENE_W))));
+      const h = entry?.contentRect.height ?? SCENE_H * 2;
+      setK(Math.max(1, Math.min(6, Math.floor(Math.min(w / SCENE_W, h / SCENE_H)))));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -158,10 +159,10 @@ export function DungeonScene(props: DungeonSceneProps) {
   const ms = (n: number) => (reducedMotion ? Math.round(n / 2) : n);
 
   return (
-    <div ref={ref} className="relative w-full overflow-hidden rounded border border-line bg-black" style={{ height: SCENE_H * k }}>
+    <div ref={ref} className="relative h-full w-full overflow-hidden rounded border border-line bg-black">
       <div
-        className="absolute left-1/2 top-0 origin-top"
-        style={{ width: SCENE_W, height: SCENE_H, transform: `translateX(-50%) scale(${k})` }}
+        className="absolute left-1/2 top-1/2"
+        style={{ width: SCENE_W, height: SCENE_H, transform: `translate(-50%, -50%) scale(${k})` }}
       >
         <div className="absolute inset-0 overflow-hidden" style={{ animation: shakeAnim }}>
           {/* background tier */}

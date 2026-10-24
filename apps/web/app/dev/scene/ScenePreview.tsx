@@ -118,24 +118,26 @@ export function ScenePreview() {
           skip
         </button>
       </div>
-      <DungeonScene
-        floor={floor}
-        roomKey={`${floor}:${enc}:${mid}`}
-        encounter={enc}
-        monsterId={mid}
-        mode={mode}
-        events={events}
-        timeline={timeline}
-        swords={swords}
-        reducedMotion={reduced}
-        caption={mode === 'fog' ? 'Something stirs in the dark…' : undefined}
-      >
-        {overlay === 'decision' && (
-          <DecisionModal floor={floor} bag={2_400_000_000_000_000_000n} hp={64} maxHp={140} pool={POOL} outcome="Menang! Loot +1.400 MON." busy={null} reducedMotion={reduced} onCashOut={() => {}} onDeeper={() => {}} />
-        )}
-        {overlay === 'death' && <DeathScreen floor={floor} lost={4_200_000_000_000_000_000n} cause="killed" onRetry={() => {}} />}
-        {overlay === 'cashout' && <CashOutScreen floor={floor} amount={6_800_000_000_000_000_000n} onAgain={() => {}} />}
-      </DungeonScene>
+      <div className="aspect-video w-full">
+        <DungeonScene
+          floor={floor}
+          roomKey={`${floor}:${enc}:${mid}`}
+          encounter={enc}
+          monsterId={mid}
+          mode={mode}
+          events={events}
+          timeline={timeline}
+          swords={swords}
+          reducedMotion={reduced}
+          caption={mode === 'fog' ? 'Something stirs in the dark…' : undefined}
+        >
+          {overlay === 'decision' && (
+            <DecisionModal floor={floor} bag={2_400_000_000_000_000_000n} hp={64} maxHp={140} pool={POOL} outcome="Menang! Loot +1.400 MON." busy={null} reducedMotion={reduced} onCashOut={() => {}} onDeeper={() => {}} />
+          )}
+          {overlay === 'death' && <DeathScreen floor={floor} lost={4_200_000_000_000_000_000n} cause="killed" onRetry={() => {}} />}
+          {overlay === 'cashout' && <CashOutScreen floor={floor} amount={6_800_000_000_000_000_000n} onAgain={() => {}} />}
+        </DungeonScene>
+      </div>
       <div className="grid gap-3 md:grid-cols-[1fr_17rem]">
         <section className="rounded border border-line bg-panel p-3">
           <EncounterCard run={{ ...run, state: RunState.AWAIT_ACTION, bag: 1_600_000_000_000_000_000n, potions: 1 }} encounter={enc} monsterId={mid} pool={POOL} busy={false} onAct={() => {}} />

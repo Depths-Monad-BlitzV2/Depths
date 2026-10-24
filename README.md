@@ -19,7 +19,14 @@ Satu lantai = 2 transaksi (act → descend/cashOut). Reveal dan settle berjalan 
 | [Build Plan](docs/BUILD_PLAN.md) | Phase, task, DoD |
 | [Demo Script](docs/DEMO_SCRIPT.md) | Pitch 3 menit |
 
-## Quickstart lokal
+## Satu perintah
+```bash
+pnpm dev          # testnet: web (localhost:3000) + keeper (kalau apps/keeper/.env ada)
+pnpm dev:local    # anvil --block-time 1 + deploy (seed 80 MON) + abi:sync + web + keeper, .env tidak disentuh
+pnpm check        # forge test, game-logic, web (test/lint/typecheck), keeper
+```
+
+## Quickstart lokal (manual)
 ```bash
 pnpm install
 anvil --block-time 1                      # terminal 1 (wajib block-time, lihat ARCHITECTURE §9)
