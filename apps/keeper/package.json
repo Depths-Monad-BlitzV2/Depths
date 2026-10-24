@@ -1,0 +1,19 @@
+{
+  "name": "keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=.env src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "game-logic": "workspace:*",
+    "viem": "^2.57.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

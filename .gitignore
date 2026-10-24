@@ -1,0 +1,26 @@
+# deps
+node_modules/
+
+# env (hanya .env.example yang di-commit)
+.env
+.env.*
+!.env.example
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# next
+apps/web/.next/
+apps/web/out/
+*.tsbuildinfo
+next-env.d.ts
+
+# build
+dist/
+
+# misc
+.DS_Store
+*.log
+coverage/

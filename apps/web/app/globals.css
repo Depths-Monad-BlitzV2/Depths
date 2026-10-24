@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Palet gelap hitam-ungu-teal (UI_UX §2). Token lengkap dibuat di Phase 5. */
+:root {
+  --background: #0b0a12;
+  --foreground: #e6e3f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, sans-serif;
+}

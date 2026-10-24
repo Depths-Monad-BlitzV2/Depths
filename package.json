@@ -1,0 +1,16 @@
+{
+  "name": "depths",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "abi:sync": "node scripts/abi-sync.mjs",
+    "spike:rng": "node scripts/spike-rng.mjs"
+  },
+  "devDependencies": {
+    "viem": "^2.57.7"
+  }
+}
