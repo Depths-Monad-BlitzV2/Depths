@@ -61,7 +61,9 @@ Floor 11–20 mengikuti HP & loot ×1.15/floor dan ATK ×1.12/floor, dibulatkan,
 Skala ekonomi ×20 (2026-10-22): entry fee naik dari 50 ke 1000 mMON, dan semua loot, harga, treasure, serta salvage ikut ×20 supaya RTP tidak berubah. Di contract, tabel loot disimpan dalam cMON (0.01 MON) karena 16180 tidak muat di slot 12-bit.
 Loot aktual = `min(tabelLoot, pool × 5%)`.
 
-Nama monster (cuma kosmetik, `monsterId = tier × 4 + rand(seedEncounter, 1) % 4`, tier 0–3): floor 1–3 Rat / Slime / Bat / Goblin · 4–6 Skeleton / Orc / Wraith / Spider · 7–10 Troll / Minotaur / Lich / Wyvern · 11–20 Dragon / Demon / Abyss Lord / Void Horror.
+Nama monster (cuma kosmetik, `monsterId = tier × 4 + rand(seedEncounter, 1) % 4`, tier 0–3): floor 1–3 Tiny Zombie / Slime / Imp / Goblin · 4–6 Skeleton / Orc / Wraith / Orc Shaman · 7–10 Troll / Orc Warlord / Lich / Chort · 11–20 Abomination / Demon / Abyss Lord / Void Horror.
+
+_2026-10-23 (Phase 5): enam nama diganti mengikuti sprite pack 0x72 DungeonTileset II (Rat → Tiny Zombie, Bat → Imp, Spider → Orc Shaman, Minotaur → Orc Warlord, Wyvern → Chort, Dragon → Abomination). Kosmetik saja: contract hanya menyimpan `monsterId`, angka tidak berubah. Mapping sprite di UI_UX §2.6._
 
 ### 4.2 Aksi saat bertemu monster
 

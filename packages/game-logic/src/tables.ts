@@ -46,10 +46,10 @@ export function monster(floor: number): MonsterStats {
 
 /** Nama kosmetik per `monsterId` (tier * 4 + index). GAME_DESIGN §4.1 */
 export const MONSTER_NAMES = [
-  'Rat', 'Slime', 'Bat', 'Goblin',
-  'Skeleton', 'Orc', 'Wraith', 'Spider',
-  'Troll', 'Minotaur', 'Lich', 'Wyvern',
-  'Dragon', 'Demon', 'Abyss Lord', 'Void Horror',
+  'Tiny Zombie', 'Slime', 'Imp', 'Goblin',
+  'Skeleton', 'Orc', 'Wraith', 'Orc Shaman',
+  'Troll', 'Orc Warlord', 'Lich', 'Chort',
+  'Abomination', 'Demon', 'Abyss Lord', 'Void Horror',
 ] as const;
 
 export type MonsterName = (typeof MONSTER_NAMES)[number];
