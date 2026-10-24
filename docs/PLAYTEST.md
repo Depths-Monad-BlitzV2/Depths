@@ -1,6 +1,6 @@
 # Playtest — Depths (Phase 6)
 
-Contract: `0x0970e0Ffd32a883E5E42Aa3933AE1594580a65AC` (Monad testnet). Kebijakan tuning (product owner, 2026-10-23): **tidak redeploy kecuali ada bug P0**. RTP dari puluhan run hanya pembanding; acuan RTP tetap simulasi 100k run (GAME_DESIGN §9).
+Contract: `0xe32D93B3fF01F25bC1455f1dB28f7d9A405B24Dc` (Monad testnet, redeploy 2026-10-24). Hasil playtest di bawah berasal dari deploy lama `0x0970…65AC` (sebelum perubahan `rollEncounter`). Kebijakan tuning (product owner, 2026-10-23): **tidak redeploy kecuali ada bug P0**. RTP dari puluhan run hanya pembanding; acuan RTP tetap simulasi 100k run (GAME_DESIGN §9).
 
 ## 1. Edge case otomatis (`pnpm -F web edge <skenario>`)
 

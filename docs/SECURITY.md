@@ -64,7 +64,7 @@ Contract ini memegang uang player. Setiap PR yang menyentuh `contracts/src` haru
 
 ## 7. Checklist sebelum deploy
 
-_Diverifikasi ulang 2026-10-23 (Phase 6) pada kode yang ter-deploy di `0x0970…65AC` (tidak ada perubahan `contracts/src` sejak deploy; Sourcify `match`)._
+_Diverifikasi ulang 2026-10-23 (Phase 6) pada `0x0970…65AC`. Redeploy 2026-10-24 ke `0xe32D…24Dc` setelah perubahan `rollEncounter` (commit 3525d3d): `forge test` 131 hijau (invariant 256 × 100), parity 550 vector hijau, ABI tidak berubah, Sourcify `match`._
 
 - [x] `forge test` hijau, termasuk invariant (≥ 256 runs × depth 100) _(130 test, invariant 256 × 100)_
 - [x] `forge coverage` ≥ 90% line untuk `src/` _(Depths 99.7%, DepthsLogic 100%, total 96.1%)_
