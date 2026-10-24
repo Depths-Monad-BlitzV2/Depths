@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Hex } from 'viem';
 import { Action, Encounter, Outcome, RunState, type Resolution } from 'game-logic';
 import { GAS_BASE, GAS_FIRST_REVEAL, GAS_PER_ATTACK, GAS_POOL_CHANGE, WORST_CASE_GAS, gasFromEstimate, gasLimit, withMargin } from '../lib/gas';
-import { mon } from '../lib/log';
+import { encounterLine, floorStory, mon, zoneName } from '../lib/log';
 import {
   actGasPath,
   attackCount,
@@ -162,6 +162,24 @@ describe('helpers', () => {
     expect(mon(10n ** 18n)).toBe('1.000');
     expect(mon(1_234_567n * 10n ** 12n)).toBe('1.234');
     expect(mon(5n * 10n ** 16n)).toBe('0.050');
+  });
+});
+
+describe('floorStory', () => {
+  it('deterministik per (runId, floor) dan memuat kalimat encounter', () => {
+    const a = floorStory(5, Encounter.MONSTER, 4, 7n);
+    expect(floorStory(5, Encounter.MONSTER, 4, 7)).toBe(a);
+    expect(a).toContain('Skeleton');
+  });
+
+  it('lantai 1 dan 20 punya pembuka khusus', () => {
+    expect(floorStory(1, Encounter.TRAP, 0, 3)).toMatch(/^Pintu dungeon/);
+    expect(floorStory(20, Encounter.TREASURE, 0, 3)).toMatch(/^Lantai terdalam/);
+  });
+
+  it('zona mengikuti tier dan encounter tanpa salt tetap kalimat lama', () => {
+    expect([1, 4, 7, 11].map(zoneName)).toEqual(['Lorong Atas', 'Gua Lumut', 'Katakomba', 'Jurang Abyss']);
+    expect(encounterLine(Encounter.MERCHANT, 0)).toBe('Pedagang tersenyum terlalu lebar.');
   });
 });
 

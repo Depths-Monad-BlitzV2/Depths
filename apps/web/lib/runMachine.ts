@@ -26,6 +26,8 @@ import { describeTxError, type TxQueue, type TxRecord } from './txQueue';
 
 /** Frontend relay di 150 blok setelah targetBlock (keeper di 200). */
 export const RELAY_AFTER_BLOCKS = 150n;
+/** Interval polling blok saat tidak ada run aktif (ms). */
+export const IDLE_POLL_MS = 2_000;
 const ZERO_SEED = `0x${'0'.repeat(64)}` as const;
 
 export interface Snapshot {
@@ -182,6 +184,7 @@ export class RunMachine {
   private snap: Snapshot | null = null;
   private phase: Phase = { kind: 'noRun' };
   private unwatch: (() => void) | null = null;
+  private fast: boolean | null = null;
   private refreshing: Promise<void> | null = null;
   private lastBlock = 0n;
   /** Tx keputusan player sedang berjalan; relay ditahan supaya tidak balapan. */
@@ -201,19 +204,30 @@ export class RunMachine {
 
   start(): void {
     if (this.unwatch) return;
-    this.unwatch = this.opts.client.watchBlockNumber({
-      poll: true,
-      pollingInterval: this.opts.pollMs ?? 250,
-      emitMissed: false,
-      onBlockNumber: (b) => void this.onBlock(b),
-      onError: (e) => this.opts.onError?.(e.message),
-    });
+    this.watch(true);
     void this.refresh();
   }
 
   stop(): void {
     this.unwatch?.();
     this.unwatch = null;
+  }
+
+  /**
+   * Polling blok cepat hanya selama run aktif. Tanpa run cukup pelan: RPC publik membatasi request per IP,
+   * dan wallet mengirim enterDungeon lewat RPC yang sama.
+   */
+  private watch(fast: boolean): void {
+    if (this.unwatch && this.fast === fast) return;
+    this.unwatch?.();
+    this.fast = fast;
+    this.unwatch = this.opts.client.watchBlockNumber({
+      poll: true,
+      pollingInterval: fast ? (this.opts.pollMs ?? 250) : IDLE_POLL_MS,
+      emitMissed: false,
+      onBlockNumber: (b) => void this.onBlock(b),
+      onError: (e) => this.opts.onError?.(e.message),
+    });
   }
 
   /** Baca ulang state dari chain (recovery saat load, setelah tx, atau saat blok target lewat). */
@@ -225,6 +239,7 @@ export class RunMachine {
         this.snap = s;
         this.lastBlock = s.block;
         this.phase = derivePhase(s);
+        if (this.unwatch) this.watch(this.phase.kind !== 'noRun');
         this.opts.onSnapshot?.(s, this.phase);
         void this.autoActions();
       } catch (e) {

@@ -1,5 +1,5 @@
 import { RunState } from 'game-logic';
-import { combatLines, encounterLine, monsterName, outcomeLine, cashOutLine, deathLine } from './log';
+import { combatLines, floorStory, monsterName, outcomeLine, cashOutLine, deathLine } from './log';
 import type { Phase, Snapshot } from './runMachine';
 
 // Mengubah urutan snapshot menjadi baris log dan ringkasan akhir run. Pure terhadap input;
@@ -35,7 +35,7 @@ export class Narrator {
     const r = s.run;
     const key = `${r.runId}:${r.floor}`;
     if (p.kind === 'encounter' && this.once(`${key}:enc`)) {
-      this.sink.log(`Lantai ${r.floor}. ${encounterLine(p.encounter, p.monsterId)}`);
+      this.sink.log(`Lantai ${r.floor}. ${floorStory(r.floor, p.encounter, p.monsterId, r.runId)}`);
     }
     const narrate = this.opts.narrateResolution ?? true;
     if (narrate && (p.kind === 'resolved' || p.kind === 'dying') && this.once(`${key}:${r.targetBlock}:res`)) {

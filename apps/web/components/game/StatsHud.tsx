@@ -84,18 +84,23 @@ function BagValue({ bag }: { bag: bigint }) {
 
 /** Progres lantai 1–20 dengan penanda rekor pribadi. */
 export function DepthMeter({ floor, best }: { floor: number; best: number }) {
+  // panah mengikuti lantai sekarang; belum ada run (0) = mentok kiri. Tiap sel 8px + gap 2px.
+  const arrowX = Math.max(0, Math.min(floor, MAX_FLOOR) - 1) * 10;
   return (
     <div className="flex items-center gap-2">
       <span className="pixel text-sm">FLOOR {floor || '-'}</span>
-      <div className="flex gap-[2px]" aria-label={`lantai ${floor} dari ${MAX_FLOOR}`}>
+      <div className="relative flex gap-[2px]" aria-label={`lantai ${floor} dari ${MAX_FLOOR}, terdalam ${best}`}>
+        <span
+          aria-hidden
+          className="absolute -top-2.5 w-2 text-center text-[8px] leading-none text-gold transition-[left] duration-500"
+          style={{ left: arrowX }}
+        >
+          ▼
+        </span>
         {Array.from({ length: MAX_FLOOR }, (_, i) => {
           const f = i + 1;
           const tone = f <= floor ? (f >= 11 ? 'bg-danger' : f >= 7 ? 'bg-purple-500' : 'bg-teal') : 'bg-line';
-          return (
-            <div key={f} className={`relative h-3 w-2 ${tone}`} title={`Lantai ${f}`}>
-              {best === f && <span className="absolute -top-2 left-0 text-[8px] leading-none text-gold">▼</span>}
-            </div>
-          );
+          return <div key={f} className={`h-3 w-2 ${tone}`} title={`Lantai ${f}`} />;
         })}
       </div>
     </div>

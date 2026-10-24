@@ -26,8 +26,6 @@ export interface DecisionModalProps {
 export function DecisionModal(p: DecisionModalProps) {
   const next = p.floor < MAX_FLOOR ? monster(p.floor + 1) : null;
   const needHold = p.floor >= HOLD_FROM_FLOOR;
-  const bpm = 60 + p.floor * 6;
-  const beat = `${(60 / bpm).toFixed(2)}s`;
   const hold = useHold(needHold ? HOLD_MS : 0, p.onDeeper, !next || p.busy !== null);
 
   // hotkey: C cash out, D go deeper (tahan D kalau perlu hold)
@@ -53,8 +51,8 @@ export function DecisionModal(p: DecisionModalProps) {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center md:absolute md:z-20 bg-black/60 p-3" role="dialog" aria-modal>
       <div
-        className="w-full max-w-md rounded-lg border-2 border-line bg-panel/95 p-5 text-center shadow-2xl"
-        style={{ animation: p.reducedMotion ? undefined : `heartbeat ${beat} ease-in-out infinite` }}
+        className="pixel-panel w-full max-w-md p-5 text-center"
+        style={{ animation: p.reducedMotion ? undefined : 'fade-in 200ms ease-out' }}
       >
         {p.outcome && <p className="mb-2 text-sm opacity-80">{p.outcome}</p>}
         <h2 className="pixel text-2xl tracking-widest">FLOOR {p.floor} CLEARED</h2>
@@ -73,7 +71,7 @@ export function DecisionModal(p: DecisionModalProps) {
         )}
         <div className="mt-5 grid grid-cols-2 gap-3">
           <button
-            className="pixel rounded bg-emerald-700 px-3 py-3 text-sm hover:bg-emerald-600 disabled:opacity-40"
+            className="pixel rounded border-2 border-black bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-3 text-sm text-amber-950 shadow-[inset_2px_2px_0_rgba(255,255,255,0.45),inset_-2px_-3px_0_rgba(0,0,0,0.25),0_3px_0_#000] hover:brightness-110 active:translate-y-0.5 disabled:opacity-40"
             disabled={p.busy !== null}
             onClick={p.onCashOut}
           >
@@ -82,7 +80,7 @@ export function DecisionModal(p: DecisionModalProps) {
           </button>
           {next ? (
             <button
-              className="pixel relative overflow-hidden rounded bg-red-800 px-3 py-3 text-sm hover:bg-red-700 disabled:opacity-40"
+              className="pixel relative overflow-hidden rounded border-2 border-black bg-gradient-to-b from-emerald-400 to-emerald-600 px-3 py-3 text-sm text-emerald-950 shadow-[inset_2px_2px_0_rgba(255,255,255,0.45),inset_-2px_-3px_0_rgba(0,0,0,0.25),0_3px_0_#000,0_0_22px_rgba(52,211,153,0.6)] ring-2 ring-emerald-300/60 ring-offset-2 ring-offset-panel hover:brightness-110 active:translate-y-0.5 disabled:opacity-40"
               disabled={p.busy !== null}
               onPointerDown={hold.start}
               onPointerUp={hold.cancel}
@@ -93,10 +91,9 @@ export function DecisionModal(p: DecisionModalProps) {
               onKeyUp={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') hold.cancel();
               }}
-              style={{ animation: p.reducedMotion || p.busy ? undefined : `heartbeat ${beat} ease-in-out infinite` }}
             >
               <span
-                className="absolute inset-y-0 left-0 bg-red-500/40"
+                className="absolute inset-y-0 left-0 bg-white/40"
                 style={{ width: `${hold.progress * 100}%`, transition: hold.progress ? 'none' : 'width 150ms' }}
               />
               <span className="relative">

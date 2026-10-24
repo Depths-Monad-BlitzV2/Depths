@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { Action, Encounter, MMON, POTION_HEAL, fleeChance, mimicFloor, monster } from 'game-logic';
 import type { OnchainRun } from '@/lib/contracts';
-import { encounterLine, mon, monsterName } from '@/lib/log';
+import { floorStory, mon, monsterName } from '@/lib/log';
 import { cappedAward, isInstant, validActions, type Purchase } from '@/lib/runMachine';
 import { MerchantPanel, purchaseCost } from './MerchantPanel';
+import { Typewriter } from './Typewriter';
 import { useWinChance } from './useWinChance';
 
 const LABEL: Record<number, string> = {
@@ -34,9 +35,10 @@ export function EncounterCard(props: {
   monsterId: number;
   pool: bigint;
   busy: boolean;
+  reducedMotion?: boolean;
   onAct: (action: number, usePotion: boolean, buy: Purchase) => void;
 }) {
-  const { run, encounter, monsterId, pool, busy, onAct } = props;
+  const { run, encounter, monsterId, pool, busy, reducedMotion, onAct } = props;
   const [usePotion, setUsePotion] = useState(false);
   const [buy, setBuy] = useState<Purchase>({ swords: 0, shields: 0, potions: 0 });
   const floor = run.floor;
@@ -49,7 +51,11 @@ export function EncounterCard(props: {
 
   return (
     <div className="space-y-3">
-      <p className="text-base">{encounterLine(encounter, monsterId)}</p>
+      <div>
+        <p className="min-h-[3em] text-base leading-relaxed">
+          <Typewriter text={floorStory(floor, encounter, monsterId, run.runId)} reducedMotion={reducedMotion} />
+        </p>
+      </div>
 
       {m && (
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">

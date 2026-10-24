@@ -30,6 +30,28 @@ body {
   font-family: system-ui, sans-serif;
 }
 
+/* Scrollbar tipis, solid gelap mengikuti palet. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3d3760;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .pixel {
   font-family: var(--font-pixel);
   letter-spacing: 0.04em;
@@ -304,6 +326,53 @@ body {
     inset -2px -3px 0 rgba(0, 0, 0, 0.45),
     0 1px 0 #000,
     0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Dialog pixel: border hitam 4px dengan sudut bertakik (box-shadow per sisi), bevel batu di dalam. */
+.pixel-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.2)),
+    var(--panel);
+  box-shadow:
+    0 -4px 0 0 #000,
+    0 4px 0 0 #000,
+    -4px 0 0 0 #000,
+    4px 0 0 0 #000,
+    0 10px 0 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 0 2px var(--line),
+    inset 4px 4px 0 0 rgba(255, 255, 255, 0.06),
+    inset -4px -4px 0 0 rgba(0, 0, 0, 0.35);
+}
+
+.pixel-input {
+  background: #08070d;
+  border: 2px solid #000;
+  box-shadow:
+    inset 2px 2px 0 rgba(0, 0, 0, 0.6),
+    inset -2px -2px 0 rgba(255, 255, 255, 0.05);
+}
+.pixel-input:focus {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+/* /play: satu layar penuh, halaman tidak bisa digulir (hanya log battle). Dipasang PlayScreen saat mount. */
+html.lock-scroll,
+html.lock-scroll body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Hormati prefers-reduced-motion: matikan shake, flash, hitstop (UI_UX §7). */

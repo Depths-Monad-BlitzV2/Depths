@@ -11,7 +11,7 @@ function Overlay({ tone, children }: { tone: 'death' | 'win'; children: ReactNod
       aria-modal
       style={{ animation: 'fade-in 500ms ease-out' }}
     >
-      <div className="w-full max-w-md rounded-lg border-2 border-line bg-panel/95 p-5 text-center shadow-2xl">{children}</div>
+      <div className="pixel-panel w-full max-w-md p-5 text-center">{children}</div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { formatEther } from 'viem';
-import { Encounter, MONSTER_NAMES, Outcome, type CombatEvent, type Resolution } from 'game-logic';
+import { Encounter, MAX_FLOOR, MONSTER_NAMES, Outcome, tierOf, type CombatEvent, type Resolution } from 'game-logic';
 
 // Teks log (UI_UX §8, Indonesia santai). Versi kasar Phase 4; CombatLog Phase 5 di-drive timeline.
 
@@ -13,19 +13,80 @@ export function monsterName(monsterId: number): string {
   return MONSTER_NAMES[monsterId] ?? 'Monster';
 }
 
-export function encounterLine(enc: number, monsterId: number): string {
-  switch (enc) {
-    case Encounter.MONSTER:
-      return `${monsterName(monsterId)} menghadang jalanmu.`;
-    case Encounter.TREASURE:
-      return 'Sebuah peti tergeletak di tengah ruangan.';
-    case Encounter.TRAP:
-      return 'Lantai di depanmu terlihat… terlalu rapi.';
-    case Encounter.MERCHANT:
-      return 'Pedagang tersenyum terlalu lebar.';
-    default:
-      return '';
-  }
+/** Nama zona kosmetik per tier (`tierOf(floor)`), dipakai landing dan narasi lantai. */
+export const ZONE_NAMES = ['Lorong Atas', 'Gua Lumut', 'Katakomba', 'Jurang Abyss'] as const;
+
+export function zoneName(floor: number): string {
+  return ZONE_NAMES[tierOf(Math.max(1, floor))] ?? ZONE_NAMES[0];
+}
+
+// Pembuka per zona: suasana makin gelap seiring kedalaman.
+const ZONE_INTROS: readonly (readonly string[])[] = [
+  [
+    'Tangga batu berderit di bawah sepatumu. Udara masih bau tanah basah.',
+    'Obor di dinding masih menyala. Seseorang pernah lewat sini, belum lama.',
+    'Tikus berlarian menjauh dari cahaya obormu.',
+  ],
+  [
+    'Lumut hijau berpendar di dinding. Air menetes entah dari mana.',
+    'Lantainya licin. Ada jejak kaki yang berhenti tiba-tiba.',
+    'Gemericik air menutupi suara langkahmu. Juga langkah yang lain.',
+  ],
+  [
+    'Tengkorak berjajar rapi di ceruk dinding. Beberapa seperti menoleh.',
+    'Bau dupa dan debu. Nama-nama terukir di batu, sebagian masih baru.',
+    'Obormu meredup sendiri. Katakomba tidak suka tamu.',
+  ],
+  [
+    'Panas naik dari celah lantai. Batu di sini berwarna darah.',
+    'Ada bisikan memanggil namamu. Padahal kamu tidak pernah menyebutkannya.',
+    'Tangga ini tidak terlihat ujungnya. Hanya gelap, dan sesuatu yang bernapas.',
+  ],
+];
+
+const FIRST_FLOOR = 'Pintu dungeon berdebam menutup di belakangmu. Satu-satunya jalan pulang: hidup-hidup.';
+const LAST_FLOOR = 'Lantai terdalam. Di sini dungeon menyimpan semua yang pernah ia ambil.';
+
+const ENCOUNTER_LINES: Record<number, readonly ((foe: string) => string)[]> = {
+  [Encounter.MONSTER]: [
+    (m) => `${m} menghadang jalanmu.`,
+    (m) => `${m} muncul dari balik bayangan, matanya menyala.`,
+    (m) => `Geraman pelan. ${m} sudah menunggumu dari tadi.`,
+  ],
+  [Encounter.TREASURE]: [
+    () => 'Sebuah peti tergeletak di tengah ruangan.',
+    () => 'Peti tua berdebu. Gemboknya sudah lama berkarat.',
+    () => 'Kilau emas mengintip dari celah peti. Terlalu mudah?',
+  ],
+  [Encounter.TRAP]: [
+    () => 'Lantai di depanmu terlihat… terlalu rapi.',
+    () => 'Ada lubang-lubang kecil di dinding. Sejajar. Mencurigakan.',
+    () => 'Satu ubin sedikit lebih tinggi dari yang lain.',
+  ],
+  [Encounter.MERCHANT]: [
+    () => 'Pedagang tersenyum terlalu lebar.',
+    () => 'Seorang pedagang menggelar dagangan di atas peti. "Mampir dulu, petualang."',
+    () => 'Lentera kecil, tumpukan barang, dan pedagang yang entah bagaimana bisa sampai di sini.',
+  ],
+};
+
+/** Pilih varian secara deterministik supaya kartu encounter dan log menampilkan teks yang sama. */
+function pick<T>(list: readonly T[], salt: number): T {
+  return list[Math.abs(salt) % list.length]!;
+}
+
+/** Kalimat encounter. `salt` (mis. runId + floor) memilih varian; tanpa salt = varian pertama. */
+export function encounterLine(enc: number, monsterId: number, salt = 0): string {
+  const lines = ENCOUNTER_LINES[enc];
+  return lines ? pick(lines, salt)(monsterName(monsterId)) : '';
+}
+
+/** Narasi pembuka lantai: suasana zona + encounter (UI_UX §8). */
+export function floorStory(floor: number, enc: number, monsterId: number, runId: bigint | number): string {
+  const salt = Number(BigInt(runId) % 1000n) * 7 + floor;
+  const intro =
+    floor === 1 ? FIRST_FLOOR : floor >= MAX_FLOOR ? LAST_FLOOR : pick(ZONE_INTROS[tierOf(floor)] ?? ZONE_INTROS[0]!, salt);
+  return `${intro} ${encounterLine(enc, monsterId, salt)}`;
 }
 
 export function combatLines(events: CombatEvent[], foe: string): string[] {

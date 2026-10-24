@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { MONSTER_NAMES, monster } from 'game-logic';
 import { SpriteActor } from '@/components/game/SpriteActor';
-import { mon } from '@/lib/log';
+import { ZONE_NAMES, mon } from '@/lib/log';
 import { MONSTER_SPRITES, SPRITES, TIER_THEMES, TILE_URL } from '@/lib/sprites';
 
 // Dekorasi landing (UI_UX §3.1). Murni CSS + atlas 0x72, tanpa state, jadi tetap server component
@@ -103,12 +103,12 @@ export function Column({ className }: { className?: string }) {
   );
 }
 
-// Nama zona kosmetik per tier, warnanya mengikuti TIER_THEMES di scene game.
+// Rentang lantai per tier (tierOf di game-logic); nama dari ZONE_NAMES, warna dari TIER_THEMES.
 const ZONES = [
-  { name: 'Lorong Atas', floors: [1, 3] },
-  { name: 'Gua Lumut', floors: [4, 6] },
-  { name: 'Katakomba', floors: [7, 10] },
-  { name: 'Jurang Abyss', floors: [11, 20] },
+  { name: ZONE_NAMES[0], floors: [1, 3] },
+  { name: ZONE_NAMES[1], floors: [4, 6] },
+  { name: ZONE_NAMES[2], floors: [7, 10] },
+  { name: ZONE_NAMES[3], floors: [11, 20] },
 ] as const;
 
 /** Peta kedalaman: 4 tier, monster, dan rentang loot tabel (GAME_DESIGN §4.1). */

@@ -19,7 +19,7 @@ import { CashOutScreen, DeathScreen } from './EndScreens';
 import { EnterPanel } from './EnterPanel';
 import { SessionPanel } from './SessionPanel';
 import { DepthMeter, PoolBadge, StatsHud } from './StatsHud';
-import { TxTicker } from './TxTicker';
+import { TxToast } from './TxToast';
 import { useBattleTimeline, useReducedMotion } from './useBattleTimeline';
 import { useDepthsGame } from './useDepthsGame';
 
@@ -29,11 +29,16 @@ const SLOW_WARN_BLOCKS = 200n;
 type Busy = null | 'act' | 'cash' | 'deeper' | 'reap';
 const NO_EVENTS: SceneEvent[] = [];
 
-/** Halaman /play (UI_UX §3.2): scene, HUD, encounter, decision modal, log, TxTicker. */
+/** Halaman /play (UI_UX §3.2): scene, HUD, encounter, decision modal, log, toast tx. */
 export function PlayScreen() {
   const { isConnected } = useAccount();
   const game = useDepthsGame();
   const reduced = useReducedMotion();
+  // satu layar penuh: halaman tidak bisa digulir, hanya log battle (lihat .lock-scroll di globals.css)
+  useEffect(() => {
+    document.documentElement.classList.add('lock-scroll');
+    return () => document.documentElement.classList.remove('lock-scroll');
+  }, []);
   const phase = useGame((s) => s.phase);
   const snapshot = useGame((s) => s.snapshot);
   const ended = useGame((s) => s.ended);
@@ -178,8 +183,8 @@ export function PlayScreen() {
   // Satu layar penuh tanpa scroll halaman: scene mengisi sisa tinggi, dialog muncul di atas scene,
   // hanya log (dan panel samping di layar pendek) yang menggulir di dalam dirinya sendiri.
   return (
-    <main className="mx-auto flex h-dvh max-w-[1600px] flex-col gap-2 overflow-hidden p-2 sm:p-3">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+    <main className="mx-auto flex h-dvh w-full max-w-[1600px] flex-col gap-2 overflow-hidden p-2 sm:p-3">
+      <header className="flex min-w-0 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h1 className="pixel text-xl tracking-[0.3em]">DEPTHS</h1>
         <DepthMeter floor={run?.floor ?? 0} best={best} />
         <PoolBadge pool={pool} />
@@ -189,7 +194,7 @@ export function PlayScreen() {
       {error && <Toast text={error} />}
 
       <div
-        className={`grid min-h-0 flex-1 gap-2 ${
+        className={`grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)] gap-2 ${
           showSide ? 'grid-rows-[auto_minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_17rem] md:grid-rows-1' : ''
         }`}
       >
@@ -263,7 +268,7 @@ export function PlayScreen() {
                 supaya stance terlihat dan pilihan potion/belanja tidak hilang kalau tx gagal. */}
             {showSide && phase.kind === 'encounter' && run && pool !== null && (
               <div
-                className={`fixed inset-x-2 bottom-2 z-30 mx-auto max-h-[60dvh] max-w-xl overflow-y-auto rounded-lg border-2 border-line bg-panel/95 p-3 shadow-2xl md:absolute md:bottom-auto md:top-2 md:z-20 md:max-h-[calc(100%-1rem)] ${
+                className={`fixed inset-x-2 bottom-2 z-30 mx-auto max-h-[60dvh] max-w-xl overflow-y-auto pixel-panel p-3 md:absolute md:bottom-auto md:top-2 md:z-20 md:max-h-[calc(100%-1rem)] ${
                   committing ? 'hidden' : ''
                 }`}
                 role="dialog"
@@ -277,6 +282,7 @@ export function PlayScreen() {
                   monsterId={phase.monsterId}
                   pool={pool}
                   busy={busy !== null || committing}
+                  reducedMotion={reduced}
                   onAct={act}
                 />
               </div>
@@ -293,7 +299,7 @@ export function PlayScreen() {
         </div>
 
         {showSide && (
-          <aside className="flex min-h-0 flex-col gap-2 overflow-y-auto md:overflow-hidden">
+          <aside className="flex min-h-0 min-w-0 flex-col gap-2 overflow-hidden">
             <section className="shrink-0 space-y-3 rounded border border-line bg-panel p-3">
               {run && run.state !== RunState.NONE ? (
                 <StatsHud
@@ -311,23 +317,23 @@ export function PlayScreen() {
               <SessionPanel game={game} balance={balance} runActive={!!run && run.state !== RunState.NONE} />
             </section>
             <section className="flex min-h-28 flex-1 flex-col rounded border border-line bg-panel p-3">
-              <CombatLog log={log} live={live} />
+              <CombatLog log={log} live={live} reducedMotion={reduced} />
             </section>
           </aside>
         )}
       </div>
 
-      <footer className="shrink-0 rounded border border-line bg-panel p-2">
-        <TxTicker txs={txs} />
-      </footer>
+      <TxToast txs={txs} />
     </main>
   );
 }
 
 function Center({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center md:absolute md:z-20 bg-black/50 p-3">
-      <div className="w-full max-w-md rounded-lg border-2 border-line bg-panel/95 p-5">{children}</div>
+    <div className="fixed inset-0 z-40 flex items-center justify-center md:absolute md:z-20 bg-black/60 p-4">
+      <div className="pixel-panel max-h-full w-full max-w-sm overflow-y-auto p-5" style={{ animation: 'fade-in 200ms ease-out' }}>
+        {children}
+      </div>
     </div>
   );
 }

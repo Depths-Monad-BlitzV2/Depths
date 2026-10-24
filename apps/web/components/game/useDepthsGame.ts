@@ -13,6 +13,9 @@ import { loadOrCreateSession } from '@/lib/session';
 import { TxQueue } from '@/lib/txQueue';
 import { gameStore } from '@/store/game';
 
+/** Interval minimal baca saldo session wallet (ms). */
+const BALANCE_POLL_MS = 3_000;
+
 export interface DepthsGame {
   owner: Address | null;
   machine: RunMachine | null;
@@ -70,6 +73,8 @@ export function useDepthsGame(): DepthsGame {
       },
       { narrateResolution: false },
     );
+    // saldo session cukup dibaca berkala: snapshot datang tiap blok (~400ms) dan RPC publik membatasi 15 req/detik
+    let balanceAt = 0;
     const machine = new RunMachine({
       client,
       address,
@@ -78,7 +83,13 @@ export function useDepthsGame(): DepthsGame {
       onSnapshot: (s, p) => {
         narrator.push(s, p);
         gameStore.getState().setSnapshot(s, p);
-        void client.getBalance({ address: account.address }).then((b) => gameStore.getState().setSessionBalance(b));
+        const now = Date.now();
+        if (now - balanceAt < BALANCE_POLL_MS) return;
+        balanceAt = now;
+        client
+          .getBalance({ address: account.address })
+          .then((b) => gameStore.getState().setSessionBalance(b))
+          .catch(() => undefined); // dicoba lagi di snapshot berikutnya
       },
       onError: (msg) => gameStore.getState().setError(msg),
     });

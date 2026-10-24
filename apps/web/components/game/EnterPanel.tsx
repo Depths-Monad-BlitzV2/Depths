@@ -8,6 +8,7 @@ import { mon } from '@/lib/log';
 import { DEFAULT_TOPUP, LOW_BALANCE } from '@/lib/session';
 import { describeTxError } from '@/lib/txQueue';
 import { gameStore, useGame } from '@/store/game';
+import { SpriteActor } from './SpriteActor';
 import type { DepthsGame } from './useDepthsGame';
 
 let enterTxId = -1;
@@ -62,36 +63,62 @@ export function EnterPanel({ game }: { game: DepthsGame }) {
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-lg">Bayar masuk. Makin dalam, makin kaya.</p>
+    <div className="space-y-4">
+      <div className="flex flex-col items-center text-center">
+        <div className="flex items-end gap-3">
+          <SpriteActor sprite="heroIdle" scale={2} />
+          <SpriteActor sprite="chestFull" scale={2} paused />
+        </div>
+        <h2 className="pixel mt-3 text-2xl tracking-widest text-gold">MASUK DUNGEON</h2>
+        <p className="mt-1 text-sm text-foreground/80">Bayar masuk. Makin dalam, makin kaya.</p>
+      </div>
+
       {game.newSession && (
-        <p className="rounded border border-teal-700 p-2 text-sm text-teal-200">
+        <p className="border-2 border-teal/40 bg-teal/10 p-2 text-xs leading-relaxed text-teal-100">
           Kami membuat session wallet supaya kamu tidak perlu approve tiap langkah. Kuncinya disimpan di browser ini,
           dan bag kamu selalu dikirim ke wallet utama, bukan ke session wallet.
         </p>
       )}
-      <label className="block text-sm">
-        Top-up gas session wallet (MON, maks {mon(MAX_GAS_TOPUP)}){needsTopUp ? ' — saldo session rendah' : ''}
-        <input
-          className="mt-1 block w-40 rounded bg-neutral-800 px-2 py-1"
-          value={topUp}
-          onChange={(e) => setTopUp(e.target.value)}
-          inputMode="decimal"
-        />
-      </label>
+
+      <div className="pixel-input space-y-2 p-3 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-foreground/80">Tiket masuk</span>
+          <span className="pixel text-gold">{fee !== null ? mon(fee) : '…'} MON</span>
+        </div>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-foreground/80">
+            Gas session
+            {needsTopUp && (
+              <span className="pixel mt-0.5 block w-fit whitespace-nowrap bg-amber-700 px-1 text-[9px] text-white">SALDO RENDAH</span>
+            )}
+          </span>
+          <span className="flex items-center gap-1">
+            <input
+              className="pixel-input pixel w-24 px-2 py-1 text-right text-sm"
+              value={topUp}
+              onChange={(e) => setTopUp(e.target.value)}
+              inputMode="decimal"
+              aria-label={`Top-up gas session wallet, maksimal ${mon(MAX_GAS_TOPUP)} MON`}
+            />
+            <span className="pixel text-xs">MON</span>
+          </span>
+        </label>
+        <div className="flex items-center justify-between gap-3 border-t-2 border-dashed border-line pt-2">
+          <span>Total</span>
+          <span className="pixel text-gold">
+            {fee !== null && topUpWei !== null && topUpValid ? mon(fee + topUpWei) : '…'} MON
+          </span>
+        </div>
+      </div>
       {!topUpValid && <p className="text-sm text-red-400">Top-up harus antara 0 dan {mon(MAX_GAS_TOPUP)} MON.</p>}
+
       <button
-        className="rounded bg-red-700 px-4 py-2 font-bold disabled:opacity-40"
+        className="btn-blood pixel w-full rounded-sm px-4 py-3 text-sm text-white disabled:opacity-40 sm:text-base"
         disabled={busy || !topUpValid || fee === null || !game.machine}
         onClick={enter}
       >
-        {busy ? 'Menunggu wallet…' : `ENTER THE DUNGEON — ${fee !== null ? mon(fee) : '…'} MON`}
+        {busy ? 'Menunggu wallet…' : 'ENTER THE DUNGEON'}
       </button>
-      {fee !== null && topUpWei !== null && topUpValid && (
-        <p className="text-xs opacity-60">
-          Total {mon(fee + topUpWei)} MON: entry {mon(fee)} + top-up {mon(topUpWei)} ke session wallet.
-        </p>
-      )}
     </div>
   );
 }
