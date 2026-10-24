@@ -5,6 +5,7 @@
 | | |
 |---|---|
 | **Live app** | **https://depths-monad.vercel.app** |
+| **Social Media** | **https://x.com/depthsonchain** |
 | **Contract (Monad Testnet)** | [`0xe32D93B3fF01F25bC1455f1dB28f7d9A405B24Dc`](https://testnet.monadexplorer.com/address/0xe32D93B3fF01F25bC1455f1dB28f7d9A405B24Dc) |
 | **Verified source** | [MonadVision (Sourcify `match`)](https://testnet.monadvision.com/address/0xe32D93B3fF01F25bC1455f1dB28f7d9A405B24Dc) |
 | **Chain** | Monad Testnet, chain ID `10143` |
