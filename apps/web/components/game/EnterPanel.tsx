@@ -6,6 +6,7 @@ import { useWriteContract } from 'wagmi';
 import { depthsAbi, depthsAddress, MAX_GAS_TOPUP } from '@/lib/contracts';
 import { mon } from '@/lib/log';
 import { DEFAULT_TOPUP, LOW_BALANCE } from '@/lib/session';
+import { describeTxError } from '@/lib/txQueue';
 import { gameStore, useGame } from '@/store/game';
 import type { DepthsGame } from './useDepthsGame';
 
@@ -53,7 +54,8 @@ export function EnterPanel({ game }: { game: DepthsGame }) {
       await game.machine?.refresh();
       await game.refreshBalance();
     } catch (e) {
-      store.setError((e as { shortMessage?: string }).shortMessage ?? (e as Error).message);
+      // alasan RPC ada di `details` (mis. saldo wallet utama belum terlihat konsensus, SPIKE_RESULTS Phase 6)
+      store.setError(describeTxError((e as { details?: string; shortMessage?: string }).details ?? (e as { shortMessage?: string }).shortMessage ?? (e as Error).message, 'wallet'));
     } finally {
       setBusy(false);
     }

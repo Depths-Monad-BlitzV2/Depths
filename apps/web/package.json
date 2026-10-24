@@ -9,7 +9,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "e2e": "tsx --env-file-if-exists=.env.local scripts/e2e.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "edge": "tsx --env-file-if-exists=.env.local scripts/edge.ts",
+    "playtest": "tsx --env-file-if-exists=.env.local scripts/playtest.ts"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",

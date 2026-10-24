@@ -100,23 +100,25 @@ _Status 2026-10-23:_ `pnpm -F web test` (19), typecheck, lint, dan `next build` 
 
 ## Phase 5 — Game feel (Hari 7–8)
 
-- [ ] 🔴 Audit aset: pilih pack, isi tabel UI_UX §2.6 (20 musuh + hero + prop), tulis `apps/web/public/CREDITS.md`. **Mulai Hari 1, paralel dengan Phase 0** (orang C)
-- [ ] 🔴 `lib/sprites.ts`: manifest sprite sheet (frame, ukuran, fps per animasi) + mapping `monsterId` → sprite
-- [ ] 🔴 `SpriteActor` + `useBattleTimeline` (tempo, skip, reduced motion)
-- [ ] 🔴 `DungeonScene` battle side-view: layer, background per tier, staging 4 encounter, stance saat menunggu blok target setelah `act` (UI_UX §2.1–2.4)
-- [ ] 🔴 `StatsHud`, `EncounterCard`, `MerchantPanel`, `CombatLog` (di-drive oleh timeline, bukan timer sendiri)
-- [ ] 🟡 Overlay equipment hero (pedang 3 varian, perisai 2 varian)
-- [ ] 🟡 Transisi lantai (jalan keluar → tangga → ruangan baru) yang menutupi latency `descend` + tunggu blok target
-- [ ] 🔴 `DecisionModal` dengan hold-to-confirm dan preview lantai berikutnya
-- [ ] 🔴 `DeathScreen`, layar cash out
-- [ ] 🔴 `TxTicker`
-- [ ] 🟡 Estimasi win chance (Monte Carlo 500× di Web Worker)
-- [ ] 🟡 Landing: pool live, live feed, CTA
-- [ ] 🟡 Leaderboard
-- [ ] ⚪ Audio, screen shake, vignette per depth
+- [x] 🔴 Audit aset: pilih pack, isi tabel UI_UX §2.6 (20 musuh + hero + prop), tulis `apps/web/public/CREDITS.md`. **Mulai Hari 1, paralel dengan Phase 0** (orang C) _(0x72 DungeonTileset II v1.7, CC0; 6 nama monster diganti lewat GAME_DESIGN §4.1)_
+- [x] 🔴 `lib/sprites.ts`: manifest sprite sheet (frame, ukuran, fps per animasi) + mapping `monsterId` → sprite
+- [x] 🔴 `SpriteActor` + `useBattleTimeline` (tempo, skip, reduced motion) _(timeline dari `lib/scene.ts`)_
+- [x] 🔴 `DungeonScene` battle side-view: layer, background per tier, staging 4 encounter, stance saat menunggu blok target setelah `act` (UI_UX §2.1–2.4)
+- [x] 🔴 `StatsHud`, `EncounterCard`, `MerchantPanel`, `CombatLog` (di-drive oleh timeline, bukan timer sendiri)
+- [x] 🟡 Overlay equipment hero (pedang 3 varian, perisai 2 varian) _(pedang 3 varian; perisai tidak ada di pack → badge di HUD, fallback §2.5)_
+- [x] 🟡 Transisi lantai (jalan keluar → tangga → ruangan baru) yang menutupi latency `descend` + tunggu blok target
+- [x] 🔴 `DecisionModal` dengan hold-to-confirm dan preview lantai berikutnya
+- [x] 🔴 `DeathScreen`, layar cash out
+- [x] 🔴 `TxTicker`
+- [x] 🟡 Estimasi win chance (Monte Carlo 500× di Web Worker)
+- [x] 🟡 Landing: pool live, live feed, CTA
+- [x] 🟡 Leaderboard _(Hall of the Fallen dari event RunDied ±2000 blok terakhir; tidak ada board on-chain untuk itu)_
+- [ ] ⚪ Audio, screen shake, vignette per depth _(shake + vignette + tint merah per kedalaman sudah; audio ditunda, cut line)_
 - [ ] ⚪ `/verify/[runId]`
 
 **DoD:** orang yang belum pernah lihat game ini bisa main tanpa dijelaskan, dan bereaksi di decision modal 😄
+
+_Status 2026-10-23:_ semua item 🔴 dan 🟡 selesai. `pnpm -F web test` (31), typecheck, lint, `next build` hijau. QA visual lewat `/dev/scene` (development saja) + screenshot headless: 4 tier, boss, merchant, decision modal, landing dan leaderboard dengan data testnet. Playtest oleh orang yang belum pernah melihat game: bisa main tanpa dijelaskan, tanpa bug ditemukan. **DoD terpenuhi.**
 
 ---
 

@@ -6,6 +6,7 @@ import { useSendTransaction } from 'wagmi';
 import { explorerAddress } from '@/lib/chains';
 import { mon } from '@/lib/log';
 import { DEFAULT_TOPUP, LOW_BALANCE, withdrawSession } from '@/lib/session';
+import { describeTxError } from '@/lib/txQueue';
 import { gameStore } from '@/store/game';
 import type { DepthsGame } from './useDepthsGame';
 
@@ -44,7 +45,7 @@ export function SessionPanel({ game, balance, runActive }: { game: DepthsGame; b
       await game.refreshBalance();
       setOpen(false);
     } catch (e) {
-      gameStore.getState().setError((e as { shortMessage?: string }).shortMessage ?? (e as Error).message);
+      gameStore.getState().setError(describeTxError((e as { details?: string; shortMessage?: string }).details ?? (e as { shortMessage?: string }).shortMessage ?? (e as Error).message, 'wallet'));
     } finally {
       setBusy(null);
     }

@@ -17,7 +17,7 @@ import {
   type PoolInfo,
 } from './contracts';
 import { gasFromEstimate, gasLimit, WORST_CASE_GAS, type GasPath } from './gas';
-import type { TxQueue, TxRecord } from './txQueue';
+import { describeTxError, type TxQueue, type TxRecord } from './txQueue';
 
 // Map Run on-chain → fase UI, dan penggerak jalur 2 tx per lantai (ARCHITECTURE §4.2.1, §6):
 //   act  → tunggu block > targetBlock → previewResolve → keputusan → descend / cashOut
@@ -379,7 +379,8 @@ export class RunMachine {
         return next > used ? next : null;
       },
     });
-    if (rec.status !== 'success') this.opts.onError?.(`${req.label}: ${rec.error ?? 'revert'} (re-sync dari chain)`);
+    if (rec.status === 'failed') this.opts.onError?.(describeTxError(rec.error));
+    if (rec.status === 'reverted') this.opts.onError?.(`${req.label} revert di chain. Status dibaca ulang.`);
     await this.refresh();
     return rec;
   }

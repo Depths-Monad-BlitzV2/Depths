@@ -88,10 +88,12 @@ Ukuran musuh naik per tier supaya kedalaman terasa: tier 1 = 16×16, tier 2 = 16
 
 | Tier (floor) | Nama | Background | Sumber aset |
 |---|---|---|---|
-| 1 (1–3) | Rat, Slime, Bat, Goblin | Batu abu, obor kuning | _diisi saat audit aset_ |
-| 2 (4–6) | Skeleton, Orc, Wraith, Spider | Batu lembap, jaring, teal | _diisi saat audit aset_ |
-| 3 (7–10) | Troll, Minotaur, Lich, Wyvern | Ruang ritual, ungu | _diisi saat audit aset_ |
-| 4 (11–20) | Dragon, Demon, Abyss Lord, Void Horror | Lava/void, merah | _diisi saat audit aset_ |
+| 1 (1–3) | Tiny Zombie, Slime, Imp, Goblin | Batu abu, banner kuning, obor kuning | 0x72 v1.7: `tiny_zombie`, `swampy`, `imp`, `goblin` (16×16) |
+| 2 (4–6) | Skeleton, Orc, Wraith, Orc Shaman | Dinding lumut, banner hijau, air mancur biru, teal | `skelet` (16×16), `masked_orc`, `angel` + recolor CSS (Wraith), `orc_shaman` (16×23) |
+| 3 (7–10) | Troll, Orc Warlord, Lich, Chort | Ruang ritual, banner biru, ungu | `ogre` (32×36), `orc_warrior`, `necromancer`, `chort` (16×23) |
+| 4 (11–20) | Abomination, Demon, Abyss Lord, Void Horror | Dinding retak, air mancur lava, merah | `big_zombie`, `big_demon` (32×36); Abyss Lord = `big_demon` recolor ungu ×3, Void Horror = `ogre` recolor void ×3 |
+
+_Audit 2026-10-23 (Phase 5):_ pack **0x72 16x16 DungeonTileset II v1.7** (CC0, `apps/web/public/CREDITS.md`). Enam nama yang tidak ada di pack diganti lewat GAME_DESIGN §4.1. Semua sprite digambar ×2 seperti tile (kerapatan pixel seragam), boss tier 4 ×3. Hero = `knight_m` (idle/run/hit); attack, death, dan drink disimulasikan dengan tween. Pedang overlay: `weapon_regular_sword` / `weapon_knight_sword` / `weapon_lavish_sword` + glow. Pack tidak punya perisai → badge di `StatsHud` (fallback §2.5). Merchant = `doc` + `crate`. Prop: `chest_full/mimic_open_anim`, `floor_spikes_anim`, `coin_anim`, `flask_big_*`, `wall_fountain_*`, `column`. Obor = glow CSS (pack tidak punya sprite obor).
 
 Aturan audit: setiap nama harus punya sprite. Kalau pack utama tidak punya, ambil dari pack CC0 lain dengan gaya dan palet yang cocok, atau palette-swap sprite yang ada (mis. Wraith = recolor ghost). Semua sumber dicatat di `CREDITS.md`.
 

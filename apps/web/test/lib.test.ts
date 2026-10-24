@@ -15,6 +15,8 @@ import {
 } from '../lib/runMachine';
 import { loadOrCreateSession, memoryStore, sessionStorageKey } from '../lib/session';
 import { Narrator, type RunEnd } from '../lib/narrator';
+import { describeTxError } from '../lib/txQueue';
+import { rpcShouldThrow } from '../lib/chains';
 import type { OnchainRun } from '../lib/contracts';
 
 const ZERO: Hex = `0x${'0'.repeat(64)}`;
@@ -220,5 +222,28 @@ describe('session', () => {
     expect(b.account.address).toBe(a.account.address);
     const other = loadOrCreateSession('0x0000000000000000000000000000000000000001', store);
     expect(other.account.address).not.toBe(a.account.address);
+  });
+});
+
+describe('error tx dan fallback RPC (Phase 6)', () => {
+  it('describeTxError: saldo kurang diarahkan ke Top-up', () => {
+    expect(describeTxError('Signer had insufficient balance')).toContain('Top-up');
+    expect(describeTxError('insufficient funds for gas * price + value')).toContain('Top-up');
+    expect(describeTxError('Signer had insufficient balance', 'wallet')).toContain('wallet utama');
+    expect(describeTxError('nonce too low')).toContain('Urutan transaksi');
+    expect(describeTxError('fetch failed')).toContain('Koneksi');
+    expect(describeTxError('execution reverted: X')).toBe('execution reverted: X');
+    expect(describeTxError(undefined)).toBe('Transaksi gagal.');
+  });
+
+  it('rpcShouldThrow: error semantik tidak di-fallback, error jaringan/kapasitas di-fallback', () => {
+    const withCode = (code: number) => Object.assign(new Error('x'), { code });
+    expect(rpcShouldThrow(withCode(-32602))).toBe(true); // invalid params / saldo kurang
+    expect(rpcShouldThrow(withCode(-32000))).toBe(true); // invalid input
+    expect(rpcShouldThrow(withCode(3))).toBe(true); // execution reverted
+    expect(rpcShouldThrow(withCode(-32005))).toBe(false); // rate limit
+    expect(rpcShouldThrow(withCode(-32601))).toBe(false); // method tidak tersedia
+    expect(rpcShouldThrow(withCode(-32603))).toBe(false); // internal error
+    expect(rpcShouldThrow(new Error('fetch failed'))).toBe(false); // jaringan
   });
 });

@@ -51,7 +51,7 @@ export function DecisionModal(p: DecisionModalProps) {
   }, [busy, next, onCashOut, hold]);
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 p-3" role="dialog" aria-modal>
+    <div className="fixed inset-0 z-40 flex items-center justify-center md:absolute md:z-20 bg-black/60 p-3" role="dialog" aria-modal>
       <div
         className="w-full max-w-md rounded-lg border-2 border-line bg-panel/95 p-5 text-center shadow-2xl"
         style={{ animation: p.reducedMotion ? undefined : `heartbeat ${beat} ease-in-out infinite` }}

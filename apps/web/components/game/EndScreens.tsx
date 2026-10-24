@@ -6,7 +6,7 @@ import { mon } from '@/lib/log';
 function Overlay({ tone, children }: { tone: 'death' | 'win'; children: ReactNode }) {
   return (
     <div
-      className={`absolute inset-0 z-20 flex items-center justify-center p-3 ${tone === 'death' ? 'bg-red-950/70' : 'bg-black/60'}`}
+      className={`fixed inset-0 z-40 flex items-center justify-center md:absolute md:z-20 p-3 ${tone === 'death' ? 'bg-red-950/70' : 'bg-black/60'}`}
       role="dialog"
       aria-modal
       style={{ animation: 'fade-in 500ms ease-out' }}

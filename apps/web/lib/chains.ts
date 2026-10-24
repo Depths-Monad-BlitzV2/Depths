@@ -31,11 +31,29 @@ export function rpcUrls(chain: Chain = activeChain): string[] {
   return [...new Set(urls)];
 }
 
-/** Transport HTTP dengan fallback otomatis ke RPC berikutnya kalau RPC utama error. */
+/** Kode error JSON-RPC yang menandakan masalah di sisi RPC (layak dicoba ke RPC lain). */
+const FALLBACK_RPC_CODES = new Set([
+  -32601, // method not found / tidak tersedia di provider ini
+  -32603, // internal error
+  -32002, // resource unavailable
+  -32005, // limit exceeded / rate limit
+]);
+
+/**
+ * Jangan fallback untuk error semantik (saldo kurang, parameter invalid, revert): RPC lain akan memberi
+ * jawaban yang sama atau menutupi alasan aslinya. Error jaringan (tanpa kode JSON-RPC) tetap fallback.
+ */
+export function rpcShouldThrow(err: Error): boolean {
+  const code = (err as { code?: unknown }).code;
+  if (typeof code !== 'number') return false;
+  return !FALLBACK_RPC_CODES.has(code);
+}
+
+/** Transport HTTP dengan fallback otomatis ke RPC berikutnya kalau RPC utama tidak bisa dihubungi. */
 export function transportFor(chain: Chain = activeChain): Transport {
   return fallback(
     rpcUrls(chain).map((url) => http(url, { retryCount: 1, timeout: 10_000 })),
-    { rank: false },
+    { rank: false, shouldThrow: rpcShouldThrow },
   );
 }
 

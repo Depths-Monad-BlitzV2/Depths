@@ -53,10 +53,35 @@ export interface TxQueueOptions {
 }
 
 const FEE_TTL_MS = 30_000;
+/** Monad reserve balance: konsensus melihat saldo k = 3 blok lalu; tunggu k + 1 sebelum kirim ulang. */
+const LAGGED_BALANCE_BLOCKS = 4n;
 
+function isInsufficientBalance(msg: string): boolean {
+  return /insufficient (balance|funds)|signer had insufficient/.test(msg);
+}
+
+/** Alasan asli dari RPC (`details`) lebih informatif daripada `shortMessage` viem yang generik. */
 function message(err: unknown): string {
   const e = err as { shortMessage?: string; details?: string; message?: string };
-  return e.shortMessage ?? e.details ?? e.message ?? String(err);
+  return e.details ?? e.shortMessage ?? e.message ?? String(err);
+}
+
+/**
+ * Pesan error tx untuk pemain (UI_UX §6: toast singkat). Pesan tak dikenal dikembalikan apa adanya.
+ * @param from `session` = tx in-run dari burner, `wallet` = enterDungeon / top-up dari wallet utama
+ */
+export function describeTxError(raw: string | undefined, from: 'session' | 'wallet' = 'session'): string {
+  const m = (raw ?? '').toLowerCase();
+  if (/insufficient (balance|funds)|signer had insufficient/.test(m)) {
+    return from === 'session'
+      ? 'Saldo session wallet tidak cukup untuk gas. Klik Top-up, lalu ulangi langkahmu.'
+      : 'Saldo wallet utama tidak cukup (atau baru saja diisi dan belum terlihat). Tunggu beberapa detik lalu coba lagi.';
+  }
+  if (m.includes('nonce')) return 'Urutan transaksi bentrok (tab lain?). Status dibaca ulang dari chain, silakan ulangi.';
+  if (m.includes('timeout') || m.includes('fetch failed') || m.includes('network')) {
+    return 'Koneksi ke RPC terputus. Status dibaca ulang dari chain, silakan ulangi.';
+  }
+  return raw || 'Transaksi gagal.';
 }
 
 function isNetworkError(err: unknown): boolean {
@@ -123,7 +148,8 @@ export class TxQueue {
     return this.fees;
   }
 
-  private async sign(req: TxRequest, gas: bigint, nonce: number): Promise<Hex> {
+  /** `bump` (wei) menaikkan priority fee supaya hash berubah: RPC Monad mengingat penolakan per hash. */
+  private async sign(req: TxRequest, gas: bigint, nonce: number, bump = 0n): Promise<Hex> {
     const fees = await this.getFees();
     return this.opts.account.signTransaction({
       type: 'eip1559',
@@ -132,7 +158,8 @@ export class TxQueue {
       data: req.data,
       gas,
       nonce,
-      ...fees,
+      maxFeePerGas: fees.maxFeePerGas + bump,
+      maxPriorityFeePerGas: fees.maxPriorityFeePerGas + bump,
     });
   }
 
@@ -151,6 +178,20 @@ export class TxQueue {
         await sleep(this.opts.backoffMs * attempt);
       }
     }
+  }
+
+  /** Saldo terbaru di chain cukup untuk gas × maxFee → penolakan disebabkan saldo tertunda, bukan saldo habis. */
+  private async fundedButLagging(gas: bigint): Promise<boolean> {
+    const [balance, fees] = await Promise.all([
+      this.opts.client.getBalance({ address: this.sender, blockTag: 'latest' }),
+      this.getFees(),
+    ]);
+    return balance >= gas * fees.maxFeePerGas;
+  }
+
+  private async waitBlocks(n: bigint): Promise<void> {
+    const start = await this.opts.client.getBlockNumber({ cacheTime: 0 });
+    while ((await this.opts.client.getBlockNumber({ cacheTime: 0 })) < start + n) await sleep(200);
   }
 
   private async process(req: TxRequest, rec: TxRecord): Promise<TxRecord> {
@@ -176,12 +217,23 @@ export class TxQueue {
       try {
         await this.broadcast(raw);
       } catch (err) {
-        if (!message(err).toLowerCase().includes('nonce')) throw err;
-        // nonce lokal basi (tx dari tab lain / recovery): sinkron ulang dan tanda tangani ulang sekali
-        this.nonce = null;
-        nonce = await this.getNonce();
-        raw = await this.sign(req, gas, nonce);
-        await this.broadcast(raw);
+        const msg = message(err).toLowerCase();
+        if (isInsufficientBalance(msg) && (await this.fundedButLagging(gas))) {
+          // Monad: konsensus memakai saldo 3 blok lalu (reserve balance, k = 3). Dana yang baru masuk
+          // (top-up / enterDungeon) belum terlihat. Tunggu beberapa blok lalu tanda tangani ulang dengan
+          // hash baru, karena RPC menolak ulang raw tx yang sama walau saldo sudah terlihat.
+          await this.waitBlocks(LAGGED_BALANCE_BLOCKS);
+          raw = await this.sign(req, gas, nonce, 1n);
+          await this.broadcast(raw);
+        } else if (msg.includes('nonce')) {
+          // nonce lokal basi (tx dari tab lain / recovery): sinkron ulang dan tanda tangani ulang sekali
+          this.nonce = null;
+          nonce = await this.getNonce();
+          raw = await this.sign(req, gas, nonce);
+          await this.broadcast(raw);
+        } else {
+          throw err;
+        }
       }
       const hash = keccak256(raw);
       this.nonce = nonce + 1;
